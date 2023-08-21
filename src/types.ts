@@ -1,12 +1,13 @@
-import type { IFetchComponent } from "@well-known-components/http-server"
+import type { IFetchComponent } from '@well-known-components/http-server'
 import type {
   IConfigComponent,
   ILoggerComponent,
   IHttpServerComponent,
   IBaseComponent,
-  IMetricsComponent,
-} from "@well-known-components/interfaces"
-import { metricDeclarations } from "./metrics"
+  IMetricsComponent
+} from '@well-known-components/interfaces'
+import { metricDeclarations } from './metrics'
+import { HTTPProvider } from 'eth-connect'
 
 export type GlobalContext = {
   components: BaseComponents
@@ -19,6 +20,7 @@ export type BaseComponents = {
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
+  provider: HTTPProvider
 }
 
 // components used in runtime
