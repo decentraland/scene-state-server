@@ -9,5 +9,6 @@ jobs:
   cd:
     uses: decentraland/platform-actions/.github/workflows/apps-docker-release.yml@main
     with:
+      dockerfile-url: https://raw.githubusercontent.com/decentraland/platform-actions/main/Dockerfile.alpine
       service-name: scene-state-server
     secrets: inherit
