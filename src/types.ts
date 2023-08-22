@@ -7,7 +7,6 @@ import type {
   IMetricsComponent
 } from '@well-known-components/interfaces'
 import { metricDeclarations } from './metrics'
-import { HTTPProvider } from 'eth-connect'
 
 export type GlobalContext = {
   components: BaseComponents
@@ -20,7 +19,6 @@ export type BaseComponents = {
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
-  provider: HTTPProvider
 }
 
 // components used in runtime
