@@ -5,22 +5,23 @@ import { IHttpServerComponent } from '@well-known-components/interfaces'
 import { verify } from '@dcl/platform-crypto-middleware'
 
 export enum MessageType {
-  Auth = 1
+  Auth = 1,
+  Crdt = 2
 }
 
 const authTimeout = 1000 * 5 // 5 secs
 const decoder = new TextDecoder()
 
-function decodeMessage(data: Uint8Array): [MessageType, Uint8Array] {
+export function decodeMessage(data: Uint8Array): [MessageType, Uint8Array] {
   const msgType = data.at(0) as number
   return [msgType, data.subarray(1)]
 }
 
 export async function wsHandler(
-  context: HandlerContextWithPath<'logs' | 'config' | 'fetch', '/ws'>
+  context: HandlerContextWithPath<'logs' | 'config' | 'fetch' | 'scene', '/ws'>
 ): Promise<IHttpServerComponent.IResponse> {
   const {
-    components: { logs, config, fetch }
+    components: { logs, config, fetch, scene }
   } = context
   const logger = logs.getLogger('Websocket Handler')
 
@@ -56,6 +57,7 @@ export async function wsHandler(
             fetcher: fetch
           })
           authenticated = true
+          scene.addSceneClient(ws)
           logger.log('ws authenticated')
         } catch (e: any) {
           logger.debug(e)

@@ -1,6 +1,6 @@
 import { LoadableApis } from './apis'
 
-const sceneDebug = false
+const sceneDebug = true
 
 type GenericRpcModule = Record<string, (...args: any) => Promise<unknown>>
 
