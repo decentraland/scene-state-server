@@ -8,7 +8,6 @@ import type {
 } from '@well-known-components/interfaces'
 import { metricDeclarations } from './metrics'
 import { ISceneComponent } from './adapters/scene'
-import { HTTPProvider } from 'eth-connect'
 
 export type GlobalContext = {
   components: BaseComponents
