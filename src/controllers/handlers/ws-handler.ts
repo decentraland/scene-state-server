@@ -1,35 +1,77 @@
+import { upgradeWebSocketResponse } from '@well-known-components/http-server/dist/ws'
 import { HandlerContextWithPath } from '../../types'
+import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { IHttpServerComponent } from '@well-known-components/interfaces'
-import { DecentralandSignatureContext, verify } from '@dcl/platform-crypto-middleware'
+import { verify } from '@dcl/platform-crypto-middleware'
+
+export enum MessageType {
+  Auth = 1
+}
+
+const authTimeout = 1000 * 5 // 5 secs
+const decoder = new TextDecoder()
+
+function decodeMessage(data: Uint8Array): [MessageType, Uint8Array] {
+  const msgType = data.at(0) as number
+  return [msgType, data.subarray(1)]
+}
 
 export async function wsHandler(
-  context: HandlerContextWithPath<'config' | 'fetch', '/ws'> & DecentralandSignatureContext<any>
+  context: HandlerContextWithPath<'logs' | 'config' | 'fetch', '/ws'>
 ): Promise<IHttpServerComponent.IResponse> {
   const {
-    components: { config, fetch }
+    components: { logs, config, fetch }
   } = context
+  const logger = logs.getLogger('Websocket Handler')
 
   const baseUrl = (
     (await config.getString('HTTP_BASE_URL')) || `${context.url.protocol}//${context.url.host}`
   ).toString()
   const path = new URL(baseUrl + context.url.pathname)
 
-  try {
-    context.verification = await verify(context.request.method, path.pathname, context.request.headers.raw(), {
-      fetcher: fetch
+  logger.debug('Websocket requested')
+  return upgradeWebSocketResponse((socket) => {
+    const ws = socket as any as WsUserData
+    ws.on('error', (error) => {
+      logger.error('ws-error')
+      logger.error(error)
+      try {
+        ws.end()
+      } catch {}
     })
-  } catch (e) {
-    return {
-      status: 401,
-      body: {
-        ok: false,
-        message: 'Access denied, invalid signed-fetch request'
+
+    ws.on('close', () => {
+      logger.debug('Websocket closed')
+    })
+
+    let authenticated = false
+
+    async function waitForAuth(data: ArrayBuffer) {
+      const [msgType, msgData] = decodeMessage(new Uint8Array(data))
+      if (msgType === MessageType.Auth) {
+        try {
+          const r = decoder.decode(msgData)
+          const headers = JSON.parse(r)
+          await verify(context.request.method, path.pathname, headers, {
+            fetcher: fetch
+          })
+          authenticated = true
+          logger.log('ws authenticated')
+        } catch (e: any) {
+          logger.debug(e)
+          ws.end()
+        } finally {
+          ws.off('message', waitForAuth)
+        }
       }
     }
-  }
 
-  return {
-    status: 200,
-    body: {}
-  }
+    setTimeout(() => {
+      if (!authenticated && ws.OPEN) {
+        logger.debug('Timeout waiting for authentication message')
+        ws.end()
+      }
+    }, authTimeout)
+    ws.on('message', waitForAuth)
+  })
 }
