@@ -20,6 +20,7 @@ export function createWsFetchRuntime(runtime: Record<string, any>) {
   const restrictedWebSocket = () => {
     throw new Error('No WS')
   }
+
   const restrictedFetch = () => {
     throw new Error('No fetch')
   }
@@ -45,6 +46,10 @@ export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
     get() {
       return module
     }
+  })
+
+  Object.defineProperty(runtime, 'registerClientObserver', {
+    value: () => {}
   })
 
   Object.defineProperty(runtime, 'exports', {

@@ -9,9 +9,14 @@ export type ISceneComponent = IBaseComponent & {
   addSceneClient(client: WsUserData): void
 }
 
-let sceneClient: ReturnType<typeof sceneClientTransport> | undefined
-export function getSceneClient() {
-  return sceneClient
+const sceneClients: Map<string, ReturnType<typeof sceneClientTransport>> = new Map()
+
+export function getConnectedClients() {
+  return Array.from(sceneClients.keys() ?? []) ?? []
+}
+
+export function getSceneClient(clientId: string) {
+  return sceneClients.get(clientId)
 }
 
 export function createSceneComponent(): ISceneComponent {
@@ -19,7 +24,7 @@ export function createSceneComponent(): ISceneComponent {
   const runtimeExecutionContext = Object.create(null)
   const sceneModule = createModuleRuntime(runtimeExecutionContext)
   let loaded = false
-
+  let lastClientId = 0
   // run the code of the scene
   async function run(sourceCode: string) {
     loaded = true
@@ -67,9 +72,15 @@ export function createSceneComponent(): ISceneComponent {
   }
 
   async function addSceneClient(socket: WsUserData) {
-    const client = sceneClientTransport(socket)
-    // TODO: this has to be an array. just experimenting => 1:1 scene
-    sceneClient = client
+    // TODO: maybe use the publicKey of the user ?
+    const clientId = lastClientId++
+    const client = sceneClientTransport(socket, String(clientId))
+
+    // if (clientObserver) {
+      // clientObserver({ type: '', clientId: '' })
+    // }
+
+    sceneClients.set(String(clientId), client)
   }
 
   return {
@@ -84,11 +95,13 @@ async function sleep(ms: number): Promise<boolean> {
   return true
 }
 
-function sceneClientTransport(socket: WsUserData) {
+function sceneClientTransport(socket: WsUserData, clientId: string) {
   const clientMessages: Uint8Array[] = []
+
   socket.on('close', () => {
-    sceneClient = undefined
+    sceneClients.delete(clientId)
   })
+
   socket.on('message', (message) => {
     const [msgType, msgData] = decodeMessage(new Uint8Array(message))
     if (msgType === MessageType.Crdt && msgData.byteLength) {
@@ -97,9 +110,11 @@ function sceneClientTransport(socket: WsUserData) {
   })
 
   return {
-    id: 1,
-    send(messages: ArrayBuffer) {
-      socket.send(messages)
+    id: clientId,
+    send(message: Uint8Array) {
+      if (message.byteLength) {
+        socket.send(new Uint8Array(message), true)
+      }
     },
     getMessages() {
       const msgs = [...clientMessages]

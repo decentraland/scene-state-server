@@ -1,20 +1,24 @@
-import { getSceneClient } from '../../adapters/scene'
+import { getConnectedClients, getSceneClient } from '../../adapters/scene'
 
 export const LoadableApis = {
   EnvironmentAPI: {},
   EngineApi: {
-    crdtGetState: () => ({ hasEntities: false, data: [] }),
-    crdtSendToRenderer: () => ({ data: [] }),
-    crdtSendNetwork: (req: { data: Uint8Array }) => {
-      const sceneClient = getSceneClient()
-      if (!sceneClient) return { data: [] }
+    sendBatch: async () => ({ events: [] }),
+    crdtGetState: async () => ({ hasEntities: false, data: [] }),
+    crdtSendToRenderer: async () => ({ data: [] }),
+
+    // TBD:
+    crdtSendNetwork: async (req: { data: Uint8Array; clientId: string }) => {
+      const sceneClient = getSceneClient(req.clientId)
+      if (!sceneClient) return Promise.resolve({ data: [] })
       sceneClient.send(req.data)
-      return { data: sceneClient.getMessages() }
+      return Promise.resolve({ data: sceneClient.getMessages() })
     },
-    sendBatch: () => ({ events: [] }),
-    isServer: () => ({ isServer: true })
+
+    // TODO: remove clients
+    isServer: async () => ({ isServer: true, clients: getConnectedClients() })
   },
   SignedFetch: {
-    getHeaders: () => ({})
+    getHeaders: async () => ({})
   }
 }
