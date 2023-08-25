@@ -48,10 +48,6 @@ export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
     }
   })
 
-  Object.defineProperty(runtime, 'registerClientObserver', {
-    value: () => {}
-  })
-
   Object.defineProperty(runtime, 'exports', {
     configurable: false,
     get() {

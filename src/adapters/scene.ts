@@ -3,26 +3,41 @@ import { customEvalSdk7 } from '../logic/scene-runtime/sandbox'
 import { createModuleRuntime } from '../logic/scene-runtime/sdk7-runtime'
 import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { MessageType, decodeMessage } from '../controllers/handlers/ws-handler'
+import { AppComponents } from '../types'
 
 export type ISceneComponent = IBaseComponent & {
   run(code: string): Promise<void>
   addSceneClient(client: WsUserData): void
 }
 
-const sceneClients: Map<string, ReturnType<typeof sceneClientTransport>> = new Map()
-
-export function getConnectedClients() {
-  return Array.from(sceneClients.keys() ?? []) ?? []
+export type Client = {
+  sendCrdtMessage(message: Uint8Array): void
+  getMessages(): Uint8Array[]
 }
+export type ClientEvent =
+  | {
+      type: 'open'
+      clientId: string
+      client: Client
+    }
+  | { type: 'close'; clientId: string }
 
-export function getSceneClient(clientId: string) {
-  return sceneClients.get(clientId)
-}
+export type ClientObserver = (client: ClientEvent) => void
 
-export function createSceneComponent(): ISceneComponent {
+export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISceneComponent {
+  const logger = logs.getLogger('scene')
   // create the context for the scene
   const runtimeExecutionContext = Object.create(null)
   const sceneModule = createModuleRuntime(runtimeExecutionContext)
+
+  let clientObserver: ClientObserver | undefined = undefined
+  Object.defineProperty(runtimeExecutionContext, 'registerClientObserver', {
+    configurable: false,
+    value: (observer: ClientObserver) => {
+      clientObserver = observer
+    }
+  })
+
   let loaded = false
   let lastClientId = 0
   // run the code of the scene
@@ -72,15 +87,47 @@ export function createSceneComponent(): ISceneComponent {
   }
 
   async function addSceneClient(socket: WsUserData) {
-    // TODO: maybe use the publicKey of the user ?
-    const clientId = lastClientId++
-    const client = sceneClientTransport(socket, String(clientId))
+    const clientId = String(lastClientId++)
 
-    // if (clientObserver) {
-      // clientObserver({ type: '', clientId: '' })
-    // }
+    if (!clientObserver) {
+      logger.warn('no client observer registered by the scene')
+      return
+    }
 
-    sceneClients.set(String(clientId), client)
+    const clientMessages: Uint8Array[] = []
+    socket.on('message', (message) => {
+      const [msgType, msgData] = decodeMessage(new Uint8Array(message))
+      if (msgType === MessageType.Crdt && msgData.byteLength) {
+        clientMessages.push(new Uint8Array(msgData))
+      }
+    })
+
+    socket.on('close', () => {
+      clientObserver!({
+        type: 'close',
+        clientId: clientId
+      })
+    })
+
+    clientObserver({
+      type: 'open',
+      clientId: clientId,
+      client: {
+        sendCrdtMessage(message: Uint8Array) {
+          if (message.byteLength) {
+            const packet = new Uint8Array(message.byteLength + 1)
+            packet.set([MessageType.Crdt])
+            packet.set(message, 1)
+            socket.send(packet, true)
+          }
+        },
+        getMessages() {
+          const msgs = [...clientMessages]
+          clientMessages.length = 0
+          return msgs
+        }
+      }
+    })
   }
 
   return {
@@ -93,33 +140,4 @@ export function createSceneComponent(): ISceneComponent {
 async function sleep(ms: number): Promise<boolean> {
   await new Promise<void>((resolve) => setTimeout(resolve, Math.max(ms | 0, 0)))
   return true
-}
-
-function sceneClientTransport(socket: WsUserData, clientId: string) {
-  const clientMessages: Uint8Array[] = []
-
-  socket.on('close', () => {
-    sceneClients.delete(clientId)
-  })
-
-  socket.on('message', (message) => {
-    const [msgType, msgData] = decodeMessage(new Uint8Array(message))
-    if (msgType === MessageType.Crdt && msgData.byteLength) {
-      clientMessages.push(new Uint8Array(msgData))
-    }
-  })
-
-  return {
-    id: clientId,
-    send(message: Uint8Array) {
-      if (message.byteLength) {
-        socket.send(new Uint8Array(message), true)
-      }
-    },
-    getMessages() {
-      const msgs = [...clientMessages]
-      clientMessages.length = 0
-      return msgs
-    }
-  }
 }
