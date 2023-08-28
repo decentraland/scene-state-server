@@ -311,10 +311,10 @@
     eth-connect "^6.0.3"
     ethereum-cryptography "^1.0.3"
 
-"@dcl/ecs@^7.3.9":
-  version "7.3.9"
-  resolved "https://registry.yarnpkg.com/@dcl/ecs/-/ecs-7.3.9.tgz#2a251ba2b3ea35f113b5cc241ed8c7fc32e15843"
-  integrity sha512-4iN30TEiefm0To6U0IB9fDY2dcTJxQWaLvKzuxHBBNp1G9SVX8SMqk5iVZoglsORkKyvonyFs8+isTGAOtgTSQ==
+"@dcl/ecs@^7.3.11":
+  version "7.3.11"
+  resolved "https://registry.yarnpkg.com/@dcl/ecs/-/ecs-7.3.11.tgz#a48461a0cdde721436caa58bc2d7b714885cde14"
+  integrity sha512-GdYcMjbctOtIrOrODXE1X/G51WCj8lJEYNpzeMUSSujSZQQBHIVEs69ogmMYNC+/8vDiYx7AKqvHRatM3K/4IQ==
 
 "@dcl/eslint-config@^1.1.11":
   version "1.1.11"

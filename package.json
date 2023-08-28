@@ -22,7 +22,7 @@
     "tabWidth": 2
   },
   "dependencies": {
-    "@dcl/ecs": "^7.3.9",
+    "@dcl/ecs": "^7.3.11",
     "@dcl/platform-crypto-middleware": "^1.0.2",
     "@well-known-components/env-config-provider": "^1.2.0",
     "@well-known-components/fetch-component": "^2.0.2",
