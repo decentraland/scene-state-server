@@ -2,7 +2,7 @@ import { IBaseComponent } from '@well-known-components/interfaces'
 import { customEvalSdk7 } from '../logic/scene-runtime/sandbox'
 import { createModuleRuntime } from '../logic/scene-runtime/sdk7-runtime'
 import { WsUserData } from '@well-known-components/http-server/dist/uws'
-import { MessageType, decodeMessage } from '../controllers/handlers/ws-handler'
+import { MessageType, decodeMessage, encodeMessage } from '../controllers/handlers/ws-handler'
 import { AppComponents } from '../types'
 
 const OPEN = 1
@@ -16,6 +16,7 @@ export type Client = {
   sendCrdtMessage(message: Uint8Array): void
   getMessages(): Uint8Array[]
 }
+
 export type ClientEvent =
   | {
       type: 'open'
@@ -33,10 +34,19 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   const sceneModule = createModuleRuntime(runtimeExecutionContext)
 
   let clientObserver: ClientObserver | undefined = undefined
+  let crdtState: Uint8Array = new Uint8Array()
+
   Object.defineProperty(runtimeExecutionContext, 'registerClientObserver', {
     configurable: false,
     value: (observer: ClientObserver) => {
       clientObserver = observer
+    }
+  })
+
+  Object.defineProperty(runtimeExecutionContext, 'updateCRDTState', {
+    configurable: false,
+    value: (value: Uint8Array) => {
+      crdtState = value
     }
   })
 
@@ -96,6 +106,11 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
       return
     }
 
+    // Send CRDT Network State
+    if (crdtState.byteLength && socket.readyState === OPEN) {
+      socket.send(encodeMessage(MessageType.Crdt, crdtState), true)
+    }
+
     const clientMessages: Uint8Array[] = []
     socket.on('message', (message) => {
       const [msgType, msgData] = decodeMessage(new Uint8Array(message))
@@ -117,10 +132,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
       client: {
         sendCrdtMessage(message: Uint8Array) {
           if (message.byteLength && socket.readyState === OPEN) {
-            const packet = new Uint8Array(message.byteLength + 1)
-            packet.set([MessageType.Crdt])
-            packet.set(message, 1)
-            socket.send(packet, true)
+            socket.send(encodeMessage(MessageType.Crdt, message), true)
           }
         },
         getMessages() {

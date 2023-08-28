@@ -17,6 +17,13 @@ export function decodeMessage(data: Uint8Array): [MessageType, Uint8Array] {
   return [msgType, data.subarray(1)]
 }
 
+export function encodeMessage(msgType: MessageType, message: Uint8Array) {
+  const packet = new Uint8Array(message.byteLength + 1)
+  packet.set([msgType])
+  packet.set(message, 1)
+  return packet
+}
+
 export async function wsHandler(
   context: HandlerContextWithPath<'logs' | 'config' | 'fetch' | 'scene', '/ws'>
 ): Promise<IHttpServerComponent.IResponse> {
