@@ -1,6 +1,7 @@
 import { Lifecycle } from '@well-known-components/interfaces'
 import { setupRouter } from './controllers/routes'
 import { AppComponents, GlobalContext, TestComponents } from './types'
+import { getGameData } from './logic/worlds'
 
 // this function wires the business logic (adapters & controllers) with the components (ports)
 export async function main(program: Lifecycle.EntryPointParameters<AppComponents | TestComponents>) {
@@ -20,4 +21,18 @@ export async function main(program: Lifecycle.EntryPointParameters<AppComponents
 
   // start ports: db, listeners, synchronizations, etc
   await startComponents()
+
+  const { config, fetch, scene } = components
+
+  const [worldServerUrl, worldName] = await Promise.all([
+    config.getString('WORLD_SERVER_URL'),
+    config.getString('WORLD_NAME')
+  ])
+
+  const code = await getGameData(
+    fetch,
+    worldServerUrl || 'https://worlds-content-server.decentraland.org',
+    worldName || 'boedo.dcl.eth'
+  )
+  await scene.run(code)
 }

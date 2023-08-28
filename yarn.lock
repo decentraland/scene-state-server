@@ -311,11 +311,6 @@
     eth-connect "^6.0.3"
     ethereum-cryptography "^1.0.3"
 
-"@dcl/ecs@^7.3.9":
-  version "7.3.9"
-  resolved "https://registry.yarnpkg.com/@dcl/ecs/-/ecs-7.3.9.tgz#2a251ba2b3ea35f113b5cc241ed8c7fc32e15843"
-  integrity sha512-4iN30TEiefm0To6U0IB9fDY2dcTJxQWaLvKzuxHBBNp1G9SVX8SMqk5iVZoglsORkKyvonyFs8+isTGAOtgTSQ==
-
 "@dcl/eslint-config@^1.1.11":
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/@dcl/eslint-config/-/eslint-config-1.1.11.tgz#f97a54bc9df7d04f3c2c6012e2ad3d8413039170"
@@ -820,10 +815,15 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@^20.3.1", "@types/node@^20.5.1":
+"@types/node@*", "@types/node@^20.3.1":
   version "20.5.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.5.1.tgz#178d58ee7e4834152b0e8b4d30cbfab578b9bb30"
   integrity sha512-4tT2UrL5LBqDwoed9wZ6N3umC4Yhz3W3FloMmiiG4JwmUJWpie0c7lcnUNd4gtMKuDEO4wRVS8B6Xa0uMRsMKg==
+
+"@types/node@^20.5.4":
+  version "20.5.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.5.4.tgz#4666fb40f9974d60c53c4ff554315860ba4feab8"
+  integrity sha512-Y9vbIAoM31djQZrPYjpTLo0XlaSwOIsrlfE3LpulZeRblttsLQRFRlBAppW0LOxyT3ALj2M5vU1ucQQayQH3jA==
 
 "@types/semver@^7.3.12":
   version "7.5.0"

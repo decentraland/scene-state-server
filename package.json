@@ -3,6 +3,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch",
     "start": "node --trace-warnings --abort-on-uncaught-exception --unhandled-rejections=strict dist/index.js",
     "test": "jest --forceExit --detectOpenHandles --coverage --verbose",
     "lint:check": "npx eslint . --ext .ts",
@@ -10,7 +11,7 @@
   },
   "devDependencies": {
     "@dcl/eslint-config": "^1.1.11",
-    "@types/node": "^20.5.1",
+    "@types/node": "^20.5.4",
     "@well-known-components/test-helpers": "^1.5.0",
     "typescript": "^5.1.6"
   },
@@ -22,7 +23,6 @@
     "tabWidth": 2
   },
   "dependencies": {
-    "@dcl/ecs": "^7.3.9",
     "@dcl/platform-crypto-middleware": "^1.0.2",
     "@well-known-components/env-config-provider": "^1.2.0",
     "@well-known-components/fetch-component": "^2.0.2",
