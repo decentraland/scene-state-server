@@ -25,9 +25,14 @@ export async function main(program: Lifecycle.EntryPointParameters<AppComponents
   const { config, fetch, scene } = components
 
   const [worldServerUrl, worldName] = await Promise.all([
-    config.requireString('WORLD_SERVER_URL'),
-    config.requireString('WORLD_NAME')
+    config.getString('WORLD_SERVER_URL'),
+    config.getString('WORLD_NAME')
   ])
-  const code = await getGameData(fetch, worldServerUrl, worldName)
+
+  const code = await getGameData(
+    fetch,
+    worldServerUrl || 'https://worlds-content-server.decentraland.org',
+    worldName || 'boedo.dcl.eth'
+  )
   await scene.run(code)
 }
