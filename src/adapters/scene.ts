@@ -5,6 +5,8 @@ import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { MessageType, decodeMessage } from '../controllers/handlers/ws-handler'
 import { AppComponents } from '../types'
 
+const OPEN = 1
+
 export type ISceneComponent = IBaseComponent & {
   run(code: string): Promise<void>
   addSceneClient(client: WsUserData): void
@@ -114,7 +116,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
       clientId: clientId,
       client: {
         sendCrdtMessage(message: Uint8Array) {
-          if (message.byteLength) {
+          if (message.byteLength && socket.readyState === OPEN) {
             const packet = new Uint8Array(message.byteLength + 1)
             packet.set([MessageType.Crdt])
             packet.set(message, 1)
