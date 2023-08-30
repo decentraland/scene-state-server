@@ -2,10 +2,11 @@ import { IBaseComponent } from '@well-known-components/interfaces'
 import { customEvalSdk7 } from '../logic/scene-runtime/sandbox'
 import { createModuleRuntime } from '../logic/scene-runtime/sdk7-runtime'
 import { WsUserData } from '@well-known-components/http-server/dist/uws'
-import { MessageType, decodeMessage, encodeMessage } from '../controllers/handlers/ws-handler'
 import { AppComponents } from '../types'
+import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '../logic/protocol'
 
 const OPEN = 1
+export const ENTITIES_RESERVED_SIZE = 512
 
 export type ISceneComponent = IBaseComponent & {
   run(code: string): Promise<void>
@@ -51,7 +52,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   })
 
   let loaded = false
-  let lastClientId = 0
+  let lastClientId = 1 // 0 is reserved for the server
   // run the code of the scene
   async function run(sourceCode: string) {
     loaded = true
@@ -99,7 +100,8 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   }
 
   async function addSceneClient(socket: WsUserData) {
-    const clientId = String(lastClientId++)
+    const index = lastClientId++
+    const clientId = String(index)
 
     if (!clientObserver) {
       logger.warn('no client observer registered by the scene')
@@ -107,9 +109,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
     }
 
     // Send CRDT Network State
-    if (crdtState.byteLength && socket.readyState === OPEN) {
-      socket.send(encodeMessage(MessageType.Crdt, crdtState), true)
-    }
+    socket.send(encodeInitMessage(crdtState, index * ENTITIES_RESERVED_SIZE, ENTITIES_RESERVED_SIZE), true)
 
     const clientMessages: Uint8Array[] = []
     socket.on('message', (message) => {
@@ -151,7 +151,6 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   }
 }
 
-async function sleep(ms: number): Promise<boolean> {
+async function sleep(ms: number): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, Math.max(ms | 0, 0)))
-  return true
 }

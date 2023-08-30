@@ -3,26 +3,9 @@ import { HandlerContextWithPath } from '../../types'
 import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { IHttpServerComponent } from '@well-known-components/interfaces'
 import { verify } from '@dcl/platform-crypto-middleware'
-
-export enum MessageType {
-  Auth = 1,
-  Crdt = 2
-}
+import { MessageType, decodeJSON, decodeMessage } from '../../logic/protocol'
 
 const authTimeout = 1000 * 5 // 5 secs
-const decoder = new TextDecoder()
-
-export function decodeMessage(data: Uint8Array): [MessageType, Uint8Array] {
-  const msgType = data.at(0) as number
-  return [msgType, data.subarray(1)]
-}
-
-export function encodeMessage(msgType: MessageType, message: Uint8Array) {
-  const packet = new Uint8Array(message.byteLength + 1)
-  packet.set([msgType])
-  packet.set(message, 1)
-  return packet
-}
 
 export async function wsHandler(
   context: HandlerContextWithPath<'logs' | 'config' | 'fetch' | 'scene', '/ws'>
@@ -58,8 +41,7 @@ export async function wsHandler(
       const [msgType, msgData] = decodeMessage(new Uint8Array(data))
       if (msgType === MessageType.Auth) {
         try {
-          const r = decoder.decode(msgData)
-          const headers = JSON.parse(r)
+          const headers = decodeJSON(msgData)
           await verify(context.request.method, path.pathname, headers, {
             fetcher: fetch
           })
