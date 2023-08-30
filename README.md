@@ -4,7 +4,7 @@
 - The scene will define the amount of network entities available for each client, and the amount of local entities
 - The client will assign a range of entity ids to each client, and clients will be able to freely create network entities in such range.
 
-## what if a client runs out of space for network entities?
+## What happens when a client runs out of space for network entities?
  
 - _Proposed solution_: Add the ability to request new ranges from the server, This cannot be done as part of the entity creation process, since it's a sync function, but we could add a simple API like this to the NetworkEntityFactory
 
