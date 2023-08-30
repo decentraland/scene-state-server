@@ -18,9 +18,14 @@ export function encodeMessage(msgType: MessageType, message: Uint8Array): Uint8A
   return packet
 }
 
-export function encodeInitMessage(crdtState: Uint8Array, start: number, size: number): Uint8Array {
-  const init = new Uint8Array(9 + crdtState.length)
-  const view = new DataView(init.buffer)
+export function encodeInitMessage(
+  crdtState: Uint8Array,
+  start: number,
+  size: number,
+  localEntitiesReserved: number
+): Uint8Array {
+  const buff = new Uint8Array(13 + crdtState.length)
+  const view = new DataView(buff.buffer)
   let offset = 0
   view.setUint8(offset, MessageType.Init)
   offset += 1
@@ -28,8 +33,10 @@ export function encodeInitMessage(crdtState: Uint8Array, start: number, size: nu
   offset += 4
   view.setUint32(offset, size)
   offset += 4
-  init.set(crdtState, offset)
-  return init
+  view.setUint32(offset, localEntitiesReserved)
+  offset += 4
+  buff.set(crdtState, offset)
+  return buff
 }
 
 export function decodeJSON(data: Uint8Array) {

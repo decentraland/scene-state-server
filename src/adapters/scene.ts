@@ -6,7 +6,12 @@ import { AppComponents } from '../types'
 import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '../logic/protocol'
 
 const OPEN = 1
-export const ENTITIES_RESERVED_SIZE = 512
+// Entities reserved for the client/renderer
+const ENTITIES_RESERVED_SIZE = 512
+// Entities reserved for local entities.
+const LOCAL_ENTITIES_RESERVED_SIZE = ENTITIES_RESERVED_SIZE + 2048
+// Amount of entities that each client receives
+const NETWORK_ENTITIES_RANGE_SIZE = 512
 
 export type ISceneComponent = IBaseComponent & {
   run(code: string): Promise<void>
@@ -109,8 +114,15 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
     }
 
     // Send CRDT Network State
-    socket.send(encodeInitMessage(crdtState, index * ENTITIES_RESERVED_SIZE, ENTITIES_RESERVED_SIZE), true)
-
+    socket.send(
+      encodeInitMessage(
+        crdtState,
+        index * NETWORK_ENTITIES_RANGE_SIZE + LOCAL_ENTITIES_RESERVED_SIZE,
+        NETWORK_ENTITIES_RANGE_SIZE,
+        LOCAL_ENTITIES_RESERVED_SIZE
+      ),
+      true
+    )
     const clientMessages: Uint8Array[] = []
     socket.on('message', (message) => {
       const [msgType, msgData] = decodeMessage(new Uint8Array(message))
