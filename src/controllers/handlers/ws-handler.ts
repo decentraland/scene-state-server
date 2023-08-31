@@ -1,6 +1,5 @@
 import { upgradeWebSocketResponse } from '@well-known-components/http-server/dist/ws'
-import { HandlerContextWithPath } from '../../types'
-import { WsUserData } from '@well-known-components/http-server/dist/uws'
+import { HandlerContextWithPath, WebSocket } from '../../types'
 import { IHttpServerComponent } from '@well-known-components/interfaces'
 import { verify } from '@dcl/platform-crypto-middleware'
 import { MessageType, decodeJSON, decodeMessage } from '../../logic/protocol'
@@ -8,10 +7,10 @@ import { MessageType, decodeJSON, decodeMessage } from '../../logic/protocol'
 const authTimeout = 1000 * 5 // 5 secs
 
 export async function wsHandler(
-  context: HandlerContextWithPath<'logs' | 'config' | 'fetch' | 'scene', '/ws'>
+  context: HandlerContextWithPath<'logs' | 'config' | 'fetch' | 'scene' | 'wsRegistry', '/ws'>
 ): Promise<IHttpServerComponent.IResponse> {
   const {
-    components: { logs, config, fetch, scene }
+    components: { logs, config, fetch, scene, wsRegistry }
   } = context
   const logger = logs.getLogger('Websocket Handler')
 
@@ -22,7 +21,8 @@ export async function wsHandler(
 
   logger.debug('Websocket requested')
   return upgradeWebSocketResponse((socket) => {
-    const ws = socket as any as WsUserData
+    const ws = socket as any as WebSocket
+    wsRegistry.onWsConnected(ws)
     ws.on('error', (error) => {
       logger.error('ws-error')
       logger.error(error)
