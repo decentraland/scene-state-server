@@ -56,8 +56,12 @@ export async function createSceneComponent({
 
   // TODO: remove this: only for debugging purposes
   async function reload() {
-    await stop()
-    await start()
+    try {
+      await stop()
+      await start()
+    } catch (err: any) {
+      logger.error(err)
+    }
   }
 
   async function start() {
