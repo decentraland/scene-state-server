@@ -7,6 +7,7 @@ import { AppComponents, GlobalContext } from './types'
 import { metricDeclarations } from './metrics'
 import { createUwsHttpServer } from '@well-known-components/http-server/dist/uws'
 import { createSceneComponent } from './adapters/scene'
+import { createWSRegistry } from './adapters/wsRegistry'
 
 // Initialize all the components of the app
 export async function initComponents(): Promise<AppComponents> {
@@ -17,6 +18,7 @@ export async function initComponents(): Promise<AppComponents> {
   const statusChecks = await createStatusCheckComponent({ server, config })
   const fetch = createFetchComponent()
   const scene = createSceneComponent({ logs })
+  const wsRegistry = createWSRegistry()
 
   await instrumentHttpServerWithMetrics({ metrics, server, config })
 
@@ -27,6 +29,7 @@ export async function initComponents(): Promise<AppComponents> {
     statusChecks,
     fetch,
     metrics,
-    scene
+    scene,
+    wsRegistry
   }
 }

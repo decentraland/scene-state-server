@@ -8,6 +8,8 @@ import type {
 } from '@well-known-components/interfaces'
 import { metricDeclarations } from './metrics'
 import { ISceneComponent } from './adapters/scene'
+import { WsUserData } from '@well-known-components/http-server/dist/uws'
+import { IWSRegistryComponent } from './adapters/wsRegistry'
 
 export type GlobalContext = {
   components: BaseComponents
@@ -21,6 +23,7 @@ export type BaseComponents = {
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
   scene: ISceneComponent
+  wsRegistry: IWSRegistryComponent
 }
 
 // components used in runtime
@@ -46,3 +49,5 @@ export type HandlerContextWithPath<
 >
 
 export type Context<Path extends string = any> = IHttpServerComponent.PathAwareContext<GlobalContext, Path>
+
+export type WebSocket = WsUserData
