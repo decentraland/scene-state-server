@@ -3,6 +3,7 @@ import { GlobalContext } from '../types'
 import { pingHandler } from './handlers/ping-handler'
 import { wsHandler } from './handlers/ws-handler'
 import { statusHandler } from './handlers/status-handler'
+import { reloadHandler } from './handlers/debugging-handler'
 
 // We return the entire router because it will be easier to test than a whole server
 export async function setupRouter(_globalContext: GlobalContext): Promise<Router<GlobalContext>> {
@@ -11,6 +12,7 @@ export async function setupRouter(_globalContext: GlobalContext): Promise<Router
   router.get('/ping', pingHandler)
   router.get('/ws', wsHandler)
   router.get('/status', statusHandler)
+  router.post('/debugging/reload', reloadHandler)
 
   return router
 }
