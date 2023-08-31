@@ -17,7 +17,7 @@ export async function initComponents(): Promise<AppComponents> {
   const server = await createUwsHttpServer<GlobalContext>({ config, logs }, { compression: false })
   const statusChecks = await createStatusCheckComponent({ server, config })
   const fetch = createFetchComponent()
-  const scene = createSceneComponent({ logs })
+  const scene = await createSceneComponent({ logs, fetch, config })
   const wsRegistry = createWSRegistry()
 
   await instrumentHttpServerWithMetrics({ metrics, server, config })
