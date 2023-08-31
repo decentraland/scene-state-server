@@ -42,7 +42,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   let clientObserver: ClientObserver | undefined
   let crdtState: Uint8Array
   let loaded = false
-  let abortController = new AbortController()
+  let abortController: AbortController
   let lastClientId: number
 
   // TODO: remove this: only for debugging purposes
@@ -55,6 +55,7 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   // run the code of the scene
   async function run(sourceCode: string) {
     code = sourceCode
+    abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
     lastClientId = 1 // 0 is reserved for the server
