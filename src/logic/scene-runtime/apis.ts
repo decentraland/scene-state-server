@@ -16,5 +16,10 @@ export const LoadableApis = {
   },
   SignedFetch: {
     getHeaders: async () => ({})
+  },
+  Runtime: {
+    getRealm: () => {
+      return { realmInfo: { isPreview: false } }
+    }
   }
 }
