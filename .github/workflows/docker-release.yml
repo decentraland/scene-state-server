@@ -11,4 +11,5 @@ jobs:
     with:
       dockerfile-url: https://raw.githubusercontent.com/decentraland/platform-actions/main/Dockerfile.ubuntu
       service-name: scene-state-server
+      deployment-environment: prd
     secrets: inherit

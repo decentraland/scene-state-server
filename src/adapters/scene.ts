@@ -44,8 +44,8 @@ export async function createSceneComponent({
   const logger = logs.getLogger('scene')
 
   const [worldServerUrl, worldName] = await Promise.all([
-    config.getString('WORLD_SERVER_URL'),
-    config.getString('WORLD_NAME')
+    config.requireString('WORLD_SERVER_URL'),
+    config.requireString('WORLD_NAME')
   ])
 
   let clientObserver: ClientObserver | undefined
@@ -65,11 +65,7 @@ export async function createSceneComponent({
   }
 
   async function start() {
-    const sourceCode = await getGameData(
-      fetch,
-      worldServerUrl || 'https://worlds-content-server.decentraland.org',
-      worldName || 'boedo.dcl.eth'
-    )
+    const sourceCode = await getGameData(fetch, worldServerUrl, worldName)
 
     abortController = new AbortController()
     crdtState = new Uint8Array()
