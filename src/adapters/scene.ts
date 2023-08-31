@@ -5,6 +5,7 @@ import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { AppComponents } from '../types'
 import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '../logic/protocol'
 import { setTimeout } from 'timers/promises'
+import { getGameData } from '../logic/worlds'
 
 const OPEN = 1
 // Entities reserved for the client/renderer
@@ -15,7 +16,6 @@ const LOCAL_ENTITIES_RESERVED_SIZE = ENTITIES_RESERVED_SIZE + 2048
 const NETWORK_ENTITIES_RANGE_SIZE = 512
 
 export type ISceneComponent = IBaseComponent & {
-  run(code: string): Promise<void>
   // TODO: remove this: only for debugging purposes
   reload(): Promise<void>
   addSceneClient(client: WsUserData): void
@@ -36,8 +36,17 @@ export type ClientEvent =
 
 export type ClientObserver = (client: ClientEvent) => void
 
-export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISceneComponent {
+export async function createSceneComponent({
+  logs,
+  config,
+  fetch
+}: Pick<AppComponents, 'logs' | 'config' | 'fetch'>): Promise<ISceneComponent> {
   const logger = logs.getLogger('scene')
+
+  const [worldServerUrl, worldName] = await Promise.all([
+    config.getString('WORLD_SERVER_URL'),
+    config.getString('WORLD_NAME')
+  ])
 
   let clientObserver: ClientObserver | undefined
   let crdtState: Uint8Array
@@ -46,15 +55,18 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   let lastClientId: number
 
   // TODO: remove this: only for debugging purposes
-  let code: string
   async function reload() {
     await stop()
-    await run(code)
+    await start()
   }
 
-  // run the code of the scene
-  async function run(sourceCode: string) {
-    code = sourceCode
+  async function start() {
+    const sourceCode = await getGameData(
+      fetch,
+      worldServerUrl || 'https://worlds-content-server.decentraland.org',
+      worldName || 'boedo.dcl.eth'
+    )
+
     abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
@@ -177,9 +189,9 @@ export function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): ISc
   }
 
   return {
-    run,
+    start,
     reload,
-    stop,
-    addSceneClient
+    addSceneClient,
+    stop
   }
 }
