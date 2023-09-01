@@ -16,9 +16,9 @@ const LOCAL_ENTITIES_RESERVED_SIZE = ENTITIES_RESERVED_SIZE + 2048
 const NETWORK_ENTITIES_RANGE_SIZE = 512
 
 export type ISceneComponent = IBaseComponent & {
-  // TODO: remove this: only for debugging purposes
-  reload(): Promise<void>
   addSceneClient(client: WsUserData): void
+  stop(): Promise<void>
+  start(): Promise<void>
 }
 
 export type Client = {
@@ -53,16 +53,6 @@ export async function createSceneComponent({
   let loaded = false
   let abortController: AbortController
   let lastClientId: number
-
-  // TODO: remove this: only for debugging purposes
-  async function reload() {
-    try {
-      await stop()
-      await start()
-    } catch (err: any) {
-      logger.error(err)
-    }
-  }
 
   async function start() {
     const sourceCode = await getGameData(fetch, worldServerUrl, worldName)
@@ -190,7 +180,6 @@ export async function createSceneComponent({
 
   return {
     start,
-    reload,
     addSceneClient,
     stop
   }

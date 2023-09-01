@@ -22,8 +22,8 @@ export type BaseComponents = {
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
-  scene: ISceneComponent
   wsRegistry: IWSRegistryComponent
+  scenes: Map<string, ISceneComponent>
 }
 
 // components used in runtime
