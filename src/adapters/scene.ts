@@ -1,11 +1,9 @@
-import { IBaseComponent } from '@well-known-components/interfaces'
 import { customEvalSdk7 } from '../logic/scene-runtime/sandbox'
 import { createModuleRuntime } from '../logic/scene-runtime/sdk7-runtime'
 import { WsUserData } from '@well-known-components/http-server/dist/uws'
 import { AppComponents } from '../types'
 import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '../logic/protocol'
 import { setTimeout } from 'timers/promises'
-import { getGameData } from '../logic/worlds'
 
 const OPEN = 1
 // Entities reserved for the client/renderer
@@ -15,10 +13,10 @@ const LOCAL_ENTITIES_RESERVED_SIZE = ENTITIES_RESERVED_SIZE + 2048
 // Amount of entities that each client receives
 const NETWORK_ENTITIES_RANGE_SIZE = 512
 
-export type ISceneComponent = IBaseComponent & {
-  // TODO: remove this: only for debugging purposes
-  reload(): Promise<void>
+export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
+  stop(): Promise<void>
+  start(sourceCode: string): Promise<void>
 }
 
 export type Client = {
@@ -36,17 +34,8 @@ export type ClientEvent =
 
 export type ClientObserver = (client: ClientEvent) => void
 
-export async function createSceneComponent({
-  logs,
-  config,
-  fetch
-}: Pick<AppComponents, 'logs' | 'config' | 'fetch'>): Promise<ISceneComponent> {
+export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): Promise<ISceneComponent> {
   const logger = logs.getLogger('scene')
-
-  const [worldServerUrl, worldName] = await Promise.all([
-    config.requireString('WORLD_SERVER_URL'),
-    config.requireString('WORLD_NAME')
-  ])
 
   let clientObserver: ClientObserver | undefined
   let crdtState: Uint8Array
@@ -54,19 +43,7 @@ export async function createSceneComponent({
   let abortController: AbortController
   let lastClientId: number
 
-  // TODO: remove this: only for debugging purposes
-  async function reload() {
-    try {
-      await stop()
-      await start()
-    } catch (err: any) {
-      logger.error(err)
-    }
-  }
-
-  async function start() {
-    const sourceCode = await getGameData(fetch, worldServerUrl, worldName)
-
+  async function start(sourceCode: string) {
     abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
@@ -190,7 +167,6 @@ export async function createSceneComponent({
 
   return {
     start,
-    reload,
     addSceneClient,
     stop
   }

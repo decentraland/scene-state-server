@@ -10,7 +10,7 @@ export async function setupRouter(_globalContext: GlobalContext): Promise<Router
   const router = new Router<GlobalContext>()
 
   router.get('/ping', pingHandler)
-  router.get('/ws', wsHandler)
+  router.get('/ws/:scene', wsHandler)
   router.get('/status', statusHandler)
   router.post('/debugging/reload', reloadHandler)
 

@@ -1,9 +1,9 @@
 import { HandlerContextWithPath } from '../../types'
 
 export async function statusHandler(
-  context: Pick<HandlerContextWithPath<'config' | 'wsRegistry', '/status'>, 'url' | 'components'>
+  context: Pick<HandlerContextWithPath<'scenes' | 'config' | 'wsRegistry', '/status'>, 'url' | 'components'>
 ) {
-  const { config, wsRegistry } = context.components
+  const { config, wsRegistry, scenes } = context.components
   const [commitHash, version] = await Promise.all([
     config.getString('COMMIT_HASH'),
     config.getString('CURRENT_VERSION')
@@ -16,7 +16,8 @@ export async function statusHandler(
       commitHash,
       version,
       currentTime: Date.now(),
-      connections: wsRegistry.getCount()
+      connections: wsRegistry.getCount(),
+      loadedScenes: Array.from(scenes.keys())
     }
   }
 }
