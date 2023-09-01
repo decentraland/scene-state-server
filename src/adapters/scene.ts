@@ -6,6 +6,7 @@ import { AppComponents } from '../types'
 import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '../logic/protocol'
 import { setTimeout } from 'timers/promises'
 import { getGameData } from '../logic/worlds'
+import { localSceneJs } from '../logic/local-scene'
 
 const OPEN = 1
 // Entities reserved for the client/renderer
@@ -65,7 +66,10 @@ export async function createSceneComponent({
   }
 
   async function start() {
-    const sourceCode = await getGameData(fetch, worldServerUrl, worldName)
+    const localScenePath = await config.getString('LOCAL_SCENE_PATH')
+    const sourceCode = !!localScenePath
+      ? localSceneJs(localScenePath)
+      : await getGameData(fetch, worldServerUrl, worldName)
 
     abortController = new AbortController()
     crdtState = new Uint8Array()
