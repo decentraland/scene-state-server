@@ -1,4 +1,5 @@
 import { IFetchComponent } from '@well-known-components/interfaces'
+import { readFileSync } from 'fs'
 
 async function getJson(fetch: IFetchComponent, url: string) {
   const res = await fetch.fetch(url)
@@ -10,7 +11,11 @@ type Content = {
   hash: string
 }
 
-export async function getGameData(fetch: IFetchComponent, worldServerUrl: string, worldName: string): Promise<string> {
+export async function getGameDataFromWorld(
+  fetch: IFetchComponent,
+  worldServerUrl: string,
+  worldName: string
+): Promise<string> {
   const about = await getJson(fetch, `${worldServerUrl}/world/${worldName}/about`)
   if (!about.healthy) {
     throw new Error(`World content server ${worldServerUrl} is in unhealthy state, cannot download scene data`)
@@ -31,4 +36,8 @@ export async function getGameData(fetch: IFetchComponent, worldServerUrl: string
 
   const res = await fetch.fetch(`${baseUrl}${entryPoint.hash}`)
   return res.text()
+}
+
+export async function getGameDataFromLocalScene(scenePath: string): Promise<string> {
+  return readFileSync(scenePath, 'utf-8')
 }

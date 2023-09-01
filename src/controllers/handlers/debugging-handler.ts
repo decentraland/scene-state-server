@@ -1,23 +1,33 @@
 import { createSceneComponent } from '../../adapters/scene'
+import { getGameDataFromLocalScene, getGameDataFromWorld } from '../../logic/sceneFetcher'
 import { AppComponents, HandlerContextWithPath } from '../../types'
 
 async function loadOrReload(
   { scenes, logs, config, fetch }: Pick<AppComponents, 'scenes' | 'logs' | 'config' | 'fetch'>,
   name: string
 ) {
-  const logger = logs.getLogger('debugging')
-  try {
-    let scene = scenes.get(name)
-    if (scene) {
-      await scene.stop()
-    } else {
-      scene = await createSceneComponent({ logs, config, fetch })
-      scenes.set(name, scene)
-    }
-    await scene.start()
-  } catch (err: any) {
-    logger.error(err)
+  const logger = logs.getLogger('scene-control')
+  let scene = scenes.get(name)
+  if (scene) {
+    logger.log(`stopping ${name}`)
+    await scene.stop()
+  } else {
+    scene = await createSceneComponent({ logs })
+    scenes.set(name, scene)
   }
+
+  let sourceCode: string
+  if (name === 'localScene') {
+    const path = await config.requireString('LOCAL_SCENE_PATH')
+    sourceCode = await getGameDataFromLocalScene(path)
+  } else {
+    const worldServerUrl = await config.requireString('WORLD_SERVER_URL')
+    sourceCode = await getGameDataFromWorld(fetch, worldServerUrl, name)
+  }
+
+  logger.log(`${name} source code loaded, starting scene`)
+
+  scene.start(sourceCode).catch(logger.error)
 }
 
 export async function reloadHandler(
@@ -45,7 +55,16 @@ export async function reloadHandler(
     }
   }
 
-  loadOrReload(context.components, body.name).catch(console.error)
+  try {
+    await loadOrReload(context.components, body.name)
+  } catch (err: any) {
+    return {
+      status: 400,
+      body: {
+        error: err.toString()
+      }
+    }
+  }
   return {
     status: 204
   }
