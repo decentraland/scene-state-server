@@ -1,5 +1,5 @@
 import { upgradeWebSocketResponse } from '@well-known-components/http-server/dist/ws'
-import { HandlerContextWithPath, WebSocket } from '../../types'
+import { HandlerContextWithPath, NotFoundError, WebSocket } from '../../types'
 import { IHttpServerComponent } from '@well-known-components/interfaces'
 import { verify } from '@dcl/platform-crypto-middleware'
 import { MessageType, decodeJSON, decodeMessage } from '../../logic/protocol'
@@ -20,12 +20,7 @@ export async function wsHandler(
   const scene = scenes.get(sceneName)
   if (!scene) {
     logger.debug(`${sceneName} is not currently loaded in the server`)
-    return {
-      status: 404,
-      body: {
-        error: `${sceneName} is not currently loaded in the server`
-      }
-    }
+    throw new NotFoundError(`${sceneName} is not currently loaded in the server`)
   }
 
   const baseUrl = (

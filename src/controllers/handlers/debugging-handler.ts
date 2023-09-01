@@ -1,6 +1,6 @@
 import { createSceneComponent } from '../../adapters/scene'
 import { getGameDataFromLocalScene, getGameDataFromWorld } from '../../logic/sceneFetcher'
-import { AppComponents, HandlerContextWithPath } from '../../types'
+import { AppComponents, BadRequestError, HandlerContextWithPath, NotAuthorizedError } from '../../types'
 
 async function loadOrReload(
   { scenes, logs, config, fetch }: Pick<AppComponents, 'scenes' | 'logs' | 'config' | 'fetch'>,
@@ -37,34 +37,21 @@ export async function reloadHandler(
 
   const secret = await config.requireString('DEBUGGING_SECRET')
   const body = await context.request.json()
+
   if (body.secret !== secret) {
-    return {
-      status: 401,
-      body: {
-        error: 'Not authorized'
-      }
-    }
+    throw new NotAuthorizedError('Not authorized')
   }
 
   if (!body.name) {
-    return {
-      status: 400,
-      body: {
-        error: 'Missing scene name'
-      }
-    }
+    throw new BadRequestError('Missing scene name')
   }
 
   try {
     await loadOrReload(context.components, body.name)
   } catch (err: any) {
-    return {
-      status: 400,
-      body: {
-        error: err.toString()
-      }
-    }
+    throw new BadRequestError(err.message)
   }
+
   return {
     status: 204
   }
