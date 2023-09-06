@@ -2,7 +2,7 @@ import { createSceneComponent } from '../../adapters/scene'
 import { getGameDataFromLocalScene, getGameDataFromWorld } from '../../logic/sceneFetcher'
 import { AppComponents, BadRequestError, HandlerContextWithPath, NotAuthorizedError } from '../../types'
 
-async function loadOrReload(
+export async function loadOrReload(
   { scenes, logs, config, fetch }: Pick<AppComponents, 'scenes' | 'logs' | 'config' | 'fetch'>,
   name: string
 ) {
