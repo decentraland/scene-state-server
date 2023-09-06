@@ -14,6 +14,9 @@ export const LoadableApis = {
     // },
     isServer: async () => ({ isServer: true })
   },
+  UserIdentity: {
+    getUserData: async () => ({})
+  },
   SignedFetch: {
     getHeaders: async () => ({})
   },
