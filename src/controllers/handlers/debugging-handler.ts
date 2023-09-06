@@ -11,9 +11,7 @@ async function loadOrReload(
   if (scene) {
     logger.log(`stopping ${name}`)
     await scene.stop()
-  } else {
-    scene = await createSceneComponent({ logs })
-    scenes.set(name, scene)
+    scenes.delete(name)
   }
 
   let sourceCode: string
@@ -25,6 +23,8 @@ async function loadOrReload(
     sourceCode = await getGameDataFromWorld(fetch, worldServerUrl, name)
   }
 
+  scene = await createSceneComponent({ logs })
+  scenes.set(name, scene)
   logger.log(`${name} source code loaded, starting scene`)
 
   scene.start(sourceCode).catch(logger.error)
