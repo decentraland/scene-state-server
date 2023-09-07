@@ -6,12 +6,6 @@ import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '..
 import { setTimeout } from 'timers/promises'
 
 const OPEN = 1
-// Entities reserved for the client/renderer
-const ENTITIES_RESERVED_SIZE = 512
-// Entities reserved for local entities.
-const LOCAL_ENTITIES_RESERVED_SIZE = ENTITIES_RESERVED_SIZE + 2048
-// Amount of entities that each client receives
-const NETWORK_ENTITIES_RANGE_SIZE = 512
 
 export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
@@ -22,6 +16,14 @@ export type ISceneComponent = {
 export type Client = {
   sendCrdtMessage(message: Uint8Array): void
   getMessages(): Uint8Array[]
+}
+
+export type ServerTransportConfig = {
+  reservedLocalEntities: number
+  networkEntitiesLimit: {
+    serverLimit: number
+    clientLimit: number
+  }
 }
 
 export type ClientEvent =
@@ -38,6 +40,7 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
   const logger = logs.getLogger('scene')
 
   let clientObserver: ClientObserver | undefined
+  let config: ServerTransportConfig
   let crdtState: Uint8Array
   let loaded = false
   let abortController: AbortController
@@ -47,15 +50,16 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
     abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
-    lastClientId = 1 // 0 is reserved for the server
+    lastClientId = 0
     loaded = true
 
     const runtimeExecutionContext = Object.create(null)
     const sceneModule = createModuleRuntime(runtimeExecutionContext)
 
-    Object.defineProperty(runtimeExecutionContext, 'registerClientObserver', {
+    Object.defineProperty(runtimeExecutionContext, 'registerScene', {
       configurable: false,
-      value: (observer: ClientObserver) => {
+      value: (serverConfig: ServerTransportConfig, observer: ClientObserver) => {
+        config = serverConfig
         clientObserver = observer
       }
     })
@@ -126,9 +130,11 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
     socket.send(
       encodeInitMessage(
         crdtState,
-        index * NETWORK_ENTITIES_RANGE_SIZE + LOCAL_ENTITIES_RESERVED_SIZE,
-        NETWORK_ENTITIES_RANGE_SIZE,
-        LOCAL_ENTITIES_RESERVED_SIZE
+        config.reservedLocalEntities +
+          config.networkEntitiesLimit.serverLimit +
+          index * config.networkEntitiesLimit.clientLimit,
+        config.networkEntitiesLimit.clientLimit,
+        config.reservedLocalEntities
       ),
       true
     )
