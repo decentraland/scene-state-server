@@ -137,8 +137,13 @@ export async function createSceneComponent({
       return
     }
 
+    function send(data: Uint8Array) {
+      socket.send(data, true)
+      metrics.observe('scene_state_server_sent_bytes', { hash: sceneHash! }, data.length)
+    }
+
     // Send CRDT Network State
-    socket.send(
+    send(
       encodeInitMessage(
         crdtState,
         config.reservedLocalEntities +
@@ -146,12 +151,13 @@ export async function createSceneComponent({
           index * config.networkEntitiesLimit.clientLimit,
         config.networkEntitiesLimit.clientLimit,
         config.reservedLocalEntities
-      ),
-      true
+      )
     )
     const clientMessages: Uint8Array[] = []
     socket.on('message', (message) => {
-      const [msgType, msgData] = decodeMessage(new Uint8Array(message))
+      const rawData = new Uint8Array(message)
+      metrics.observe('scene_state_server_recv_bytes', { hash: sceneHash! }, rawData.length)
+      const [msgType, msgData] = decodeMessage(rawData)
       if (msgType === MessageType.Crdt && msgData.byteLength) {
         clientMessages.push(new Uint8Array(msgData))
       }
@@ -170,7 +176,7 @@ export async function createSceneComponent({
       client: {
         sendCrdtMessage(message: Uint8Array) {
           if (message.byteLength && socket.readyState === OPEN) {
-            socket.send(encodeMessage(MessageType.Crdt, message), true)
+            send(encodeMessage(MessageType.Crdt, message))
           }
         },
         getMessages() {

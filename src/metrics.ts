@@ -13,6 +13,16 @@ export const metricDeclarations = {
     help: 'Scene state size in bytes',
     type: IMetricsComponent.GaugeType,
     labelNames: ['hash']
+  },
+  scene_state_server_sent_bytes: {
+    help: 'Sent size in bytes',
+    type: IMetricsComponent.HistogramType,
+    labelNames: ['hash']
+  },
+  scene_state_server_recv_bytes: {
+    help: 'Receive size in bytes',
+    type: IMetricsComponent.HistogramType,
+    labelNames: ['hash']
   }
 }
 
