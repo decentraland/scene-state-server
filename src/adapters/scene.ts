@@ -10,7 +10,8 @@ const OPEN = 1
 export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
   stop(): Promise<void>
-  start(sourceCode: string): Promise<void>
+  start(hash: string, sourceCode: string): Promise<void>
+  getSceneHash(): undefined | string
 }
 
 export type Client = {
@@ -36,7 +37,10 @@ export type ClientEvent =
 
 export type ClientObserver = (client: ClientEvent) => void
 
-export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): Promise<ISceneComponent> {
+export async function createSceneComponent({
+  logs,
+  metrics
+}: Pick<AppComponents, 'logs' | 'metrics'>): Promise<ISceneComponent> {
   const logger = logs.getLogger('scene')
 
   let clientObserver: ClientObserver | undefined
@@ -45,13 +49,19 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
   let loaded = false
   let abortController: AbortController
   let lastClientId: number
+  let sceneHash: string | undefined
 
-  async function start(sourceCode: string) {
+  function getSceneHash() {
+    return sceneHash
+  }
+
+  async function start(hash: string, sourceCode: string) {
     abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
     lastClientId = 0
     loaded = true
+    sceneHash = hash
 
     const runtimeExecutionContext = Object.create(null)
     const sceneModule = createModuleRuntime(runtimeExecutionContext)
@@ -67,6 +77,7 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
     Object.defineProperty(runtimeExecutionContext, 'updateCRDTState', {
       configurable: false,
       value: (value: Uint8Array) => {
+        metrics.observe('scene_state_server_state_size', { hash }, value.length)
         crdtState = value
       }
     })
@@ -172,6 +183,7 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
   }
 
   return {
+    getSceneHash,
     start,
     addSceneClient,
     stop

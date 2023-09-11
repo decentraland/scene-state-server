@@ -5,10 +5,14 @@ import { metricDeclarations as logsMetricsDeclarations } from '@well-known-compo
 export const metricDeclarations = {
   ...getDefaultHttpMetrics(),
   ...logsMetricsDeclarations,
-  test_ping_counter: {
-    help: 'Count calls to ping',
-    type: IMetricsComponent.CounterType,
-    labelNames: ['pathname']
+  scene_state_server_connection_count: {
+    help: 'Number of connected peers',
+    type: IMetricsComponent.GaugeType
+  },
+  scene_state_server_state_size: {
+    help: 'Scene state size in bytes',
+    type: IMetricsComponent.GaugeType,
+    labelNames: ['hash']
   }
 }
 

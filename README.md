@@ -1,36 +1,25 @@
+# Running locally
 
-# Network entity limits
-
-- The scene will define the amount of network entities available for each client, and the amount of local entities
-- The client will assign a range of entity ids to each client, and clients will be able to freely create network entities in such range.
-
-## What happens when a client runs out of space for network entities?
-
-- _Proposed solution_: Add the ability to request new ranges from the server, This cannot be done as part of the entity creation process, since it's a sync function, but we could add a simple API like this to the NetworkEntityFactory
-
+Create a `.env` file with the var `LOCAL_SCENE_PATH` pointed to your scene compiled game file. For example:
 
 ```
-getCapacity(): number // returns the number of entities the current range can create
-ensureCapacity(c: number): Promise<void> // request a new range to the server
+LOCAL_SCENE_PATH=../moving-platforms-multiplayer-test/bin/game.js
 ```
 
-- if an addEntity call is made while there is no capacity, we will throw an error
+Run `yarn` to install dependencies, `yarn build` to build the server, and every time you compile your scene the server should be started running `yarn start`
 
-## Reuse range if most ids are unused
+# Deploying the server to prod
 
-Currently, the server reserves fixed entity ids ranges for each client `[512, 1024]`, `[1024, 1536]`, etc. That means the n-th client will get `[512*n, 512*(n+1)]` -assuming 512 is the max amount of networked entities defined in the scene-. The problem is we will eventually run out of entities since there are only 2**16 available.
+You can find a public docker image in `quay.io/decentraland/scene-state-server`, or build it yourself.
 
-- _Proposed solution_: be able to return shorter ranges by looking back at unused entities in a used range, so if client1 was assigned `[512, 1024]` but used only 5 entities, the range `[517, 1024]` is still available
+`LOCAL_SCENE_PATH` should not be included in the deployed environment. You can specify a world server url with `WORLD_SERVER_URL`, and you *must* specify a `DEBUGGING_SECRET`.
 
-## Persistent state while server is running
+Once the server is running and before be able to use the server in a world, you need to request the server to load the world's scene:
 
-The server will accumulate the sync state of all clients, and the network entities of the past will remain in the state, which may cause problems, both in the size of the state and also in entity id availability.
+```
+curl -H "Content-Type: application/json" -X POST --data '{"secret": <secret>, "name": "<world name>"}' https://<server url>/debugging/reload
+```
 
-- How do we remove entities in such a way we are able to reuse state?
-- How do we provide the ability to scene creators to be able to distinguish from networked entities that should or shouldn't persist in time?
+you can use the same command to restart the scene state.
 
-## State when server is restarted
-
-- How do we reconcile the state of each client that may attempt to reconnect with a fresh state from the server? Not only the crdt state of the entities but the range definitions and so on..
-
-- _Proposed simple solution_: Let's not handle reconnections, If a server is down show a UI explaining to the user the server has gone down and that they should restart the scene.
+Please remember this API is alpha, eventually, we would like to integrate new worlds deployment in a more straightforward way.

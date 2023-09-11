@@ -8,6 +8,12 @@ export async function statusHandler(
     config.getString('COMMIT_HASH'),
     config.getString('CURRENT_VERSION')
   ])
+
+  const loadedScenes: string[] = []
+  for (const [name, scene] of scenes) {
+    loadedScenes.push(`${name}:${scene.getSceneHash()}`)
+  }
+
   return {
     headers: {
       'Access-Control-Allow-Origin': '*'
@@ -17,7 +23,7 @@ export async function statusHandler(
       version,
       currentTime: Date.now(),
       connections: wsRegistry.getCount(),
-      loadedScenes: Array.from(scenes.keys())
+      loadedScenes
     }
   }
 }

@@ -18,7 +18,7 @@ export async function initComponents(): Promise<AppComponents> {
   const statusChecks = await createStatusCheckComponent({ server, config })
   const fetch = createFetchComponent()
   const scenes = new Map<string, ISceneComponent>()
-  const wsRegistry = createWSRegistry()
+  const wsRegistry = createWSRegistry({ metrics })
 
   await instrumentHttpServerWithMetrics({ metrics, server, config })
 

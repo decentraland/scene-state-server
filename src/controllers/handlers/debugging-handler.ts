@@ -3,7 +3,7 @@ import { getGameDataFromLocalScene, getGameDataFromWorld } from '../../logic/sce
 import { AppComponents, BadRequestError, HandlerContextWithPath, NotAuthorizedError } from '../../types'
 
 export async function loadOrReload(
-  { scenes, logs, config, fetch }: Pick<AppComponents, 'scenes' | 'logs' | 'config' | 'fetch'>,
+  { scenes, logs, config, fetch, metrics }: Pick<AppComponents, 'metrics' | 'scenes' | 'logs' | 'config' | 'fetch'>,
   name: string
 ) {
   const logger = logs.getLogger('scene-control')
@@ -14,24 +14,28 @@ export async function loadOrReload(
     scenes.delete(name)
   }
 
+  let hash: string
   let sourceCode: string
   if (name === 'localScene') {
     const path = await config.requireString('LOCAL_SCENE_PATH')
     sourceCode = await getGameDataFromLocalScene(path)
+    hash = 'localScene'
   } else {
     const worldServerUrl = await config.requireString('WORLD_SERVER_URL')
-    sourceCode = await getGameDataFromWorld(fetch, worldServerUrl, name)
+    const { sceneHash, code } = await getGameDataFromWorld(fetch, worldServerUrl, name)
+    sourceCode = code
+    hash = sceneHash
   }
 
-  scene = await createSceneComponent({ logs })
+  scene = await createSceneComponent({ logs, metrics })
   scenes.set(name, scene)
   logger.log(`${name} source code loaded, starting scene`)
 
-  scene.start(sourceCode).catch(logger.error)
+  scene.start(hash, sourceCode).catch(logger.error)
 }
 
 export async function reloadHandler(
-  context: HandlerContextWithPath<'scenes' | 'logs' | 'config' | 'fetch', '/debugging/load'>
+  context: HandlerContextWithPath<'scenes' | 'metrics' | 'logs' | 'config' | 'fetch', '/debugging/load'>
 ) {
   const { config } = context.components
 
