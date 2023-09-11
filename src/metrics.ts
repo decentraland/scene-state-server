@@ -10,6 +10,10 @@ export const metricDeclarations = {
     type: IMetricsComponent.CounterType,
     labelNames: ['pathname']
   }
+  // scene_state_server_connection_count: {
+  //   help: 'Number of connected peers',
+  //   type: IMetricsComponent.GaugeType
+  // }
 }
 
 // type assertions

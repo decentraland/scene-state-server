@@ -10,7 +10,8 @@ const OPEN = 1
 export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
   stop(): Promise<void>
-  start(sourceCode: string): Promise<void>
+  start(hash: string, sourceCode: string): Promise<void>
+  getSceneHash(): undefined | string
 }
 
 export type Client = {
@@ -45,13 +46,19 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
   let loaded = false
   let abortController: AbortController
   let lastClientId: number
+  let sceneHash: string | undefined
 
-  async function start(sourceCode: string) {
+  function getSceneHash() {
+    return sceneHash
+  }
+
+  async function start(hash: string, sourceCode: string) {
     abortController = new AbortController()
     crdtState = new Uint8Array()
     clientObserver = undefined
     lastClientId = 0
     loaded = true
+    sceneHash = hash
 
     const runtimeExecutionContext = Object.create(null)
     const sceneModule = createModuleRuntime(runtimeExecutionContext)
@@ -172,6 +179,7 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
   }
 
   return {
+    getSceneHash,
     start,
     addSceneClient,
     stop

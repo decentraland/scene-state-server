@@ -15,7 +15,7 @@ export async function getGameDataFromWorld(
   fetch: IFetchComponent,
   worldServerUrl: string,
   worldName: string
-): Promise<string> {
+): Promise<{ sceneHash: string; code: string }> {
   const about = await getJson(fetch, `${worldServerUrl}/world/${worldName}/about`)
   if (!about.healthy) {
     throw new Error(`World content server ${worldServerUrl} is in unhealthy state, cannot download scene data`)
@@ -35,7 +35,7 @@ export async function getGameDataFromWorld(
   }
 
   const res = await fetch.fetch(`${baseUrl}${entryPoint.hash}`)
-  return res.text()
+  return { sceneHash, code: await res.text() }
 }
 
 export async function getGameDataFromLocalScene(scenePath: string): Promise<string> {
