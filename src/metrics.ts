@@ -8,6 +8,11 @@ export const metricDeclarations = {
   scene_state_server_connection_count: {
     help: 'Number of connected peers',
     type: IMetricsComponent.GaugeType
+  },
+  scene_state_server_state_size: {
+    help: 'Scene state size in bytes',
+    type: IMetricsComponent.GaugeType,
+    labelNames: ['hash']
   }
 }
 

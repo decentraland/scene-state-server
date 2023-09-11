@@ -3,7 +3,7 @@ import { getGameDataFromLocalScene, getGameDataFromWorld } from '../../logic/sce
 import { AppComponents, BadRequestError, HandlerContextWithPath, NotAuthorizedError } from '../../types'
 
 export async function loadOrReload(
-  { scenes, logs, config, fetch }: Pick<AppComponents, 'scenes' | 'logs' | 'config' | 'fetch'>,
+  { scenes, logs, config, fetch, metrics }: Pick<AppComponents, 'metrics' | 'scenes' | 'logs' | 'config' | 'fetch'>,
   name: string
 ) {
   const logger = logs.getLogger('scene-control')
@@ -27,7 +27,7 @@ export async function loadOrReload(
     hash = sceneHash
   }
 
-  scene = await createSceneComponent({ logs })
+  scene = await createSceneComponent({ logs, metrics })
   scenes.set(name, scene)
   logger.log(`${name} source code loaded, starting scene`)
 
@@ -35,7 +35,7 @@ export async function loadOrReload(
 }
 
 export async function reloadHandler(
-  context: HandlerContextWithPath<'scenes' | 'logs' | 'config' | 'fetch', '/debugging/load'>
+  context: HandlerContextWithPath<'scenes' | 'metrics' | 'logs' | 'config' | 'fetch', '/debugging/load'>
 ) {
   const { config } = context.components
 

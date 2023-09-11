@@ -37,7 +37,10 @@ export type ClientEvent =
 
 export type ClientObserver = (client: ClientEvent) => void
 
-export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>): Promise<ISceneComponent> {
+export async function createSceneComponent({
+  logs,
+  metrics
+}: Pick<AppComponents, 'logs' | 'metrics'>): Promise<ISceneComponent> {
   const logger = logs.getLogger('scene')
 
   let clientObserver: ClientObserver | undefined
@@ -74,6 +77,7 @@ export async function createSceneComponent({ logs }: Pick<AppComponents, 'logs'>
     Object.defineProperty(runtimeExecutionContext, 'updateCRDTState', {
       configurable: false,
       value: (value: Uint8Array) => {
+        metrics.observe('scene_state_server_state_size', { hash }, value.length)
         crdtState = value
       }
     })
