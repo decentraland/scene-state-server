@@ -10,8 +10,8 @@ export function createWSRegistry({ metrics }: Pick<AppComponents, 'metrics'>): I
   const registry = new Set<WebSocket>()
 
   function onWsConnected(ws: WebSocket): void {
-    metrics.observe('scene_state_server_connection_count', {}, registry.size)
     registry.add(ws)
+    metrics.observe('scene_state_server_connection_count', {}, registry.size)
     ws.on('close', () => {
       registry.delete(ws)
       metrics.observe('scene_state_server_connection_count', {}, registry.size)
