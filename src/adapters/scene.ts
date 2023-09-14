@@ -148,7 +148,8 @@ export async function createSceneComponent({
     send(
       encodeInitMessage(
         crdtState,
-        config.reservedLocalEntities +
+        1 + // the range that we send is inclusive, so we need to increment in one the previous range
+          config.reservedLocalEntities +
           config.networkEntitiesLimit.serverLimit +
           index * config.networkEntitiesLimit.clientLimit,
         config.networkEntitiesLimit.clientLimit,
