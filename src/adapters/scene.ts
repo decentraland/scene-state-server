@@ -138,8 +138,10 @@ export async function createSceneComponent({
     }
 
     function send(data: Uint8Array) {
-      socket.send(data, true)
-      metrics.observe('scene_state_server_sent_bytes', { hash: sceneHash! }, data.length)
+      if (socket.readyState === OPEN) {
+        socket.send(data, true)
+        metrics.observe('scene_state_server_sent_bytes', { hash: sceneHash! }, data.length)
+      }
     }
 
     // Send CRDT Network State
@@ -175,7 +177,7 @@ export async function createSceneComponent({
       clientId: clientId,
       client: {
         sendCrdtMessage(message: Uint8Array) {
-          if (message.byteLength && socket.readyState === OPEN) {
+          if (message.byteLength) {
             send(encodeMessage(MessageType.Crdt, message))
           }
         },
