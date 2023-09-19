@@ -66,7 +66,7 @@ export async function wsHandler(
     }
 
     setTimeout(() => {
-      if (!authenticated) {
+      if (!authenticated && ws.readyState === 1) {
         logger.debug('Timeout waiting for authentication message')
         ws.end()
       }
