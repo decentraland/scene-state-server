@@ -338,9 +338,9 @@
     "@well-known-components/interfaces" "^1.4.2"
 
 "@dcl/schemas@^9.2.0":
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/@dcl/schemas/-/schemas-9.6.0.tgz#e5e02166e182063577d997019d4a1dad237fc8d2"
-  integrity sha512-k2qfX00Zs7FMT1Ou2dZYZwayK4Ru11IoC8/iSq9Xn81HLcrwzM/LEIBAjDu2fE8bz7U84osBnPgJYs1DG+OV2Q==
+  version "9.9.0"
+  resolved "https://registry.yarnpkg.com/@dcl/schemas/-/schemas-9.9.0.tgz#868693b46ef3d64b166d095bb0405d5119de461a"
+  integrity sha512-n7zgMWTHb0O8oqb4kfVJzuTi/R3qkp/BZTAqhS1BRtSeulVhEVAnpPd2R6nzW9gC9D0Wp1yzaMo53gUIAcHSDw==
   dependencies:
     ajv "^8.11.0"
     ajv-errors "^3.0.0"
