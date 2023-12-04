@@ -10,7 +10,7 @@
     "lint:fix": "npx eslint . --ext .ts --fix"
   },
   "devDependencies": {
-    "@dcl/eslint-config": "^1.1.12",
+    "@dcl/eslint-config": "^1.1.13",
     "@types/node": "^20.5.7",
     "@well-known-components/test-helpers": "^1.5.0",
     "typescript": "^5.1.6"
