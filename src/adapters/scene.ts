@@ -102,7 +102,7 @@ export async function createSceneComponent({
 
         let start = performance.now()
 
-        while (loaded) {
+        while (false) {
           const now = performance.now()
           const dtMillis = now - start
           start = now

@@ -1,17 +1,15 @@
+import { serializeCrdtMessages } from './logger'
+
 export const LoadableApis = {
   EnvironmentAPI: {},
   EngineApi: {
     sendBatch: async () => ({ events: [] }),
-    crdtGetState: async () => ({ hasEntities: false, data: [] }),
-    crdtSendToRenderer: async () => ({ data: [] }),
-
-    // TBD:
-    // crdtSendNetwork: async (req: { data: Uint8Array; clientId: string }) => {
-    //   const sceneClient = getSceneClient(req.clientId)
-    //   if (!sceneClient) return Promise.resolve({ data: [] })
-    //   sceneClient.send(req.data)
-    //   return Promise.resolve({ data: sceneClient.getMessages() })
-    // },
+    // TODO: read main.crdt file and put it here (a.k.a composite.json)
+    crdtGetState: async () => ({ hasEntities: true, data: [] }),
+    crdtSendToRenderer: async ({ data }: { data: Uint8Array }) => {
+      console.log(JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2))
+      return { data: [] }
+    },
     isServer: async () => ({ isServer: true })
   },
   UserIdentity: {
