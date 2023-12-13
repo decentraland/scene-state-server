@@ -51,29 +51,25 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
     method: 'post',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ pointers: [sceneCoords] })
-  })
-  
+  })  
   const sceneData = (await fetchResponse.json())[0]  
   console.log(`PRAVS - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.runtimeVersion === '7'}`)
   
   const contentUrl = 'https://peer.decentraland.org/content/contents/'
   
-  // TODO: get main.crdt and use that instead of
+  // TODO: get main.crdt and use that instead of main file
   
   // get scene main file hash (index.js/game.js)
-  let sceneMainFileHash = undefined
-  for (const asset of sceneData.content) {
-    if (asset.file === sceneData.metadata.main) {
-      sceneMainFileHash = asset.hash
-      break
-    }
-  }
-
+  const sceneMainFileHash = sceneData.content.find(($: any) => $.file === sceneData.metadata.main)?.hash  
   if (!sceneMainFileHash) {
     throw new Error(`Cannot scene's main asset file hash`)
   }
+
+  /*if (sceneData.metadata.runtimeVersion !== '7') {
+    fetchResponse = await fetch.fetch(`https://renderer-artifacts.decentraland.org/sdk7-adaption-layer/main/index.js`)
+    return await fetchResponse.text()
+  }*/
   
-  fetchResponse = await fetch.fetch(`${contentUrl}${sceneMainFileHash}`)
-  
+  fetchResponse = await fetch.fetch(`${contentUrl}${sceneMainFileHash}`)  
   return await fetchResponse.text()
 }
