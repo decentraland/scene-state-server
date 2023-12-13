@@ -2,7 +2,9 @@ import { serializeCrdtMessages } from './logger'
 import {contentFetchBaseUrl, sdk6FetchComponent, sdk6SceneContent} from "../sceneFetcher";
 
 export const LoadableApis = {
-  EnvironmentAPI: {},
+  EnvironmentApi: {
+    isPreviewMode: async () => ({ isPreview: false })
+  },
   EngineApi: {
     sendBatch: async () => ({ events: [] }),
     
@@ -27,12 +29,10 @@ export const LoadableApis = {
     },
     // readFile is needed for the adaption-layer bridge to run SDK6 scenes as an SDK7 scene
     readFile: async ({ fileName }: { fileName: String }) => {
-      console.log(`PRAVS - Runtime.readFile - 1 - ${fileName}`)
       const fileHash = sdk6SceneContent.find(({ file }: any) => file === fileName).hash
       const res = await sdk6FetchComponent.fetch(`${contentFetchBaseUrl}${fileHash}`)
       return {
-        // content: await res.arrayBuffer()
-        content: new Uint8Array(await res.arrayBuffer())
+        content: await res.arrayBuffer()
       }
     }
   }

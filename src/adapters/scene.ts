@@ -6,7 +6,7 @@ import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '..
 import { setTimeout } from 'timers/promises'
 
 const OPEN = 1
-const FRAMES_TO_RUN = 1
+const FRAMES_TO_RUN = 2
 
 export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
