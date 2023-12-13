@@ -6,6 +6,7 @@ import { MessageType, decodeMessage, encodeInitMessage, encodeMessage } from '..
 import { setTimeout } from 'timers/promises'
 
 const OPEN = 1
+const FRAMES_TO_RUN = 1
 
 export type ISceneComponent = {
   addSceneClient(client: WsUserData): void
@@ -99,10 +100,10 @@ export async function createSceneComponent({
       if (sceneModule.exports.onUpdate) {
         // first update always use 0.0 as delta time
         await sceneModule.runUpdate(0.0)
-
+        let framesRan = 1
         let start = performance.now()
 
-        while (false) {
+        while (framesRan < FRAMES_TO_RUN) {
           const now = performance.now()
           const dtMillis = now - start
           start = now
@@ -113,6 +114,8 @@ export async function createSceneComponent({
           // wait for next frame
           const ms = Math.max((updateIntervalMs - (performance.now() - start)) | 0, 0)
           await setTimeout(Math.max(ms | 0, 0), undefined, { signal: abortController.signal })
+          
+          framesRan++
         }
       }
     } catch (e: any) {

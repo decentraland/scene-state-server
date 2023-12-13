@@ -46,15 +46,19 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
   // TODO: Find out how reliable are these content urls, will they change in the future?
   
   // get scene id
-  const mappingsUrl = `https://peer.decentraland.org/content/entities/scene/?pointer=${sceneCoords}`
-  let fetchResponse = await fetch.fetch(mappingsUrl)  
+  const mappingsUrl = `https://peer.decentraland.org/content/entities/active`
+  let fetchResponse = await fetch.fetch(mappingsUrl, {
+    method: 'post',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ pointers: [sceneCoords] })
+  })
   
   const sceneData = (await fetchResponse.json())[0]  
-  console.log(`PRAVS - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.ecs7}`)
+  console.log(`PRAVS - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.runtimeVersion === '7'}`)
   
   const contentUrl = 'https://peer.decentraland.org/content/contents/'
   
-  // TODO: get main.crdt and use that instead of 
+  // TODO: get main.crdt and use that instead of
   
   // get scene main file hash (index.js/game.js)
   let sceneMainFileHash = undefined

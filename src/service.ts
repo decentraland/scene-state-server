@@ -31,6 +31,5 @@ export async function main(program: Lifecycle.EntryPointParameters<AppComponents
   const remoteSceneCoords = await components.config.getString('REMOTE_SCENE_COORDS')
   if (remoteSceneCoords) {
     await loadOrReload(components, 'remoteScene')
-    return
   }
 }
