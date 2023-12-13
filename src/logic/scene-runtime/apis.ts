@@ -4,8 +4,10 @@ export const LoadableApis = {
   EnvironmentAPI: {},
   EngineApi: {
     sendBatch: async () => ({ events: [] }),
-    // TODO: read main.crdt file and put it here (a.k.a composite.json)
+    
+    // TODO: read main.crdt file and inject it here (to support editor-made scenes)
     crdtGetState: async () => ({ hasEntities: true, data: [] }),
+    
     crdtSendToRenderer: async ({ data }: { data: Uint8Array }) => {
       console.log(JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2))
       return { data: [] }

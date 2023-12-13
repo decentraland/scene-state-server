@@ -21,10 +21,16 @@ export async function main(program: Lifecycle.EntryPointParameters<AppComponents
 
   // start ports: db, listeners, synchronizations, etc
   await startComponents()
-
-  // Start scene always if the localScenePath is declared
+  
   const localPath = await components.config.getString('LOCAL_SCENE_PATH')
   if (localPath) {
     await loadOrReload(components, 'localScene')
+    return
+  }
+  
+  const remoteSceneCoords = await components.config.getString('REMOTE_SCENE_COORDS')
+  if (remoteSceneCoords) {
+    await loadOrReload(components, 'remoteScene')
+    return
   }
 }

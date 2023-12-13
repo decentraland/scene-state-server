@@ -41,3 +41,35 @@ export async function getGameDataFromWorld(
 export async function getGameDataFromLocalScene(scenePath: string): Promise<string> {
   return readFileSync(scenePath, 'utf-8')
 }
+
+export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCoords: string): Promise<string> {
+  // TODO: Find out how reliable are these content urls, will they change in the future?
+  
+  // get scene id
+  const mappingsUrl = `https://peer.decentraland.org/content/entities/scene/?pointer=${sceneCoords}`
+  let fetchResponse = await fetch.fetch(mappingsUrl)  
+  
+  const sceneData = (await fetchResponse.json())[0]  
+  console.log(`PRAVS - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.ecs7}`)
+  
+  const contentUrl = 'https://peer.decentraland.org/content/contents/'
+  
+  // TODO: get main.crdt and use that instead of 
+  
+  // get scene main file hash (index.js/game.js)
+  let sceneMainFileHash = undefined
+  for (const asset of sceneData.content) {
+    if (asset.file === sceneData.metadata.main) {
+      sceneMainFileHash = asset.hash
+      break
+    }
+  }
+
+  if (!sceneMainFileHash) {
+    throw new Error(`Cannot scene's main asset file hash`)
+  }
+  
+  fetchResponse = await fetch.fetch(`${contentUrl}${sceneMainFileHash}`)
+  
+  return await fetchResponse.text()
+}
