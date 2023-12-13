@@ -16,11 +16,7 @@ export function* serializeCrdtMessages(prefix: string, data: Uint8Array) {
     if (message.type === CrdtMessageType.PUT_COMPONENT) {
       const { componentId } = message
       const data = 'data' in message ? message.data : undefined
-      if (
-        ![Transform.componentId, MeshRenderer.componentId, GltfContainer.componentId, Material.componentId].includes(
-          componentId
-        )
-      ) {
+      if (![Transform.componentId, MeshRenderer.componentId, GltfContainer.componentId, Material.componentId].includes(componentId)) {
         continue
       }
       try {

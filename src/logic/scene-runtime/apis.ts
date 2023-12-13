@@ -1,6 +1,8 @@
 import { serializeCrdtMessages } from './logger'
-import {contentFetchBaseUrl, sdk6FetchComponent, sdk6SceneContent} from "../sceneFetcher";
+import { contentFetchBaseUrl, sdk6FetchComponent, sdk6SceneContent } from "../sceneFetcher";
+import { writeFileSync, writeFile, WriteFileOptions } from 'fs'
 
+let createdOutput = false
 export const LoadableApis = {
   EnvironmentApi: {
     isPreviewMode: async () => ({ isPreview: false })
@@ -12,7 +14,16 @@ export const LoadableApis = {
     crdtGetState: async () => ({ hasEntities: true, data: [] }),
     
     crdtSendToRenderer: async ({ data }: { data: Uint8Array }) => {
-      console.log(JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2))
+      if (createdOutput || data.length == 0) return
+      createdOutput = true
+      const outputJSON = JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2)
+      writeFile('output.json', outputJSON,
+          err => {
+            if (err) {
+              console.log(err)
+            }
+          })
+      console.log(outputJSON)
       return { data: [] }
     },
     isServer: async () => ({ isServer: true })
