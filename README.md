@@ -1,25 +1,29 @@
-# Running locally
+This LODs Manifest Builder was created based on the experimental [scene-state-server](https://github.com/decentraland/scene-state-server).
 
-Create a `.env` file with the var `LOCAL_SCENE_PATH` pointed to your scene compiled game file. For example:
+# What the server does
+
+Based on a target scene, the server fetches its main file (game.js/index.js/main.crdt), runs it for some frames with a very basic version of the sdk7 core runtime and outputs a manifest JSON file with the rendereable entities information.
+
+Information gathered:
+- Transform component data
+- GLTFContainer component data
+- MeshRenderer component data
+- Material component data
+
+# SDK6 Scenes support
+
+This server supports targetting SDK6 scenes as it uses the [sdk7-adaption-layer](https://github.com/decentraland/sdk7-adaption-layer/tree/main) when a non SDK7 scene is detected. 
+
+# Configuring target scene
+
+Create a `.env` file with the var `REMOTE_SCENE_COORDS` specifying the target scene coordiantes. For example:
 
 ```
-LOCAL_SCENE_PATH=../moving-platforms-multiplayer-test/bin/game.js
+REMOTE_SCENE_COORDS=-129,-77
 ```
 
-Run `yarn` to install dependencies, `yarn build` to build the server, and every time you compile your scene the server should be started running `yarn start`
+# Running the server locally and manually
 
-# Deploying the server to prod
+Run `npm run build` to build the server after any modification (or first install)
 
-You can find a public docker image in `quay.io/decentraland/scene-state-server`, or build it yourself.
-
-`LOCAL_SCENE_PATH` should not be included in the deployed environment. You can specify a world server url with `WORLD_SERVER_URL`, and you *must* specify a `DEBUGGING_SECRET`.
-
-Once the server is running and before be able to use the server in a world, you need to request the server to load the world's scene:
-
-```
-curl -H "Content-Type: application/json" -X POST --data '{"secret": <secret>, "name": "<world name>"}' https://<server url>/debugging/reload
-```
-
-you can use the same command to restart the scene state.
-
-Please remember this API is alpha, eventually, we would like to integrate new worlds deployment in a more straightforward way.
+Run `npm run start` to run the server
