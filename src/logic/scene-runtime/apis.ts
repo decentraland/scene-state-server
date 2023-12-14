@@ -45,9 +45,6 @@ export const LoadableApis = {
       return {
         content: await res.arrayBuffer()
       }
-    },
-    // console: {
-    //   log: () => ({})
-    // }
+    }
   }
 }
