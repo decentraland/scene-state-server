@@ -42,8 +42,8 @@ export async function getGameDataFromLocalScene(scenePath: string): Promise<stri
   return readFileSync(scenePath, 'utf-8')
 }
 
-export let sdk6SceneContent: any
 export const contentFetchBaseUrl = 'https://peer.decentraland.org/content/contents/'
+export let sdk6SceneContent: any
 export let sdk6FetchComponent: any
 export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCoords: string): Promise<string> {  
   // get scene id
@@ -59,7 +59,6 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
   // SDK6 scenes support
   if (sceneData.metadata.runtimeVersion !== '7') {
     // sdk6 scene content will be later read by the adaption-layer internally using the Runtime.readFile API
-    // sdk6SceneSourceCode = fetchResponse.blob()
     sdk6SceneContent = sceneData.content
     sdk6FetchComponent = fetch
 

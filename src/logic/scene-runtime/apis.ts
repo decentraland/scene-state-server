@@ -2,7 +2,7 @@ import { serializeCrdtMessages } from './logger'
 import { contentFetchBaseUrl, sdk6FetchComponent, sdk6SceneContent } from "../sceneFetcher";
 import { writeFileSync, writeFile, WriteFileOptions } from 'fs'
 
-let createdOutput = false
+let savedManifest = false
 export const LoadableApis = {
   EnvironmentApi: {
     isPreviewMode: async () => ({ isPreview: false })
@@ -14,16 +14,16 @@ export const LoadableApis = {
     crdtGetState: async () => ({ hasEntities: true, data: [] }),
     
     crdtSendToRenderer: async ({ data }: { data: Uint8Array }) => {
-      if (createdOutput || data.length == 0) return
-      createdOutput = true
-      const outputJSON = JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2)
-      writeFile('output.json', outputJSON,
+      if (savedManifest || data.length == 0) return
+      savedManifest = true
+      const outputJSONManifest = JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2)
+      writeFile('rendereable-entities-manifest.json', outputJSONManifest,
           err => {
             if (err) {
               console.log(err)
             }
           })
-      console.log(outputJSON)
+      console.log(outputJSONManifest)
       return { data: [] }
     },
     isServer: async () => ({ isServer: true })
@@ -45,6 +45,9 @@ export const LoadableApis = {
       return {
         content: await res.arrayBuffer()
       }
-    }
+    },
+    // console: {
+    //   log: () => ({})
+    // }
   }
 }
