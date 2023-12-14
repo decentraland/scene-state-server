@@ -55,29 +55,17 @@ export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
     }
   })
 
-  if (sceneDebug) {
-    Object.defineProperty(runtime, 'console', {
-      value: {
-        log: console.log.bind(console),
-        info: console.log.bind(console),
-        debug: console.log.bind(console),
-        trace: console.log.bind(console),
-        warning: console.error.bind(console),
-        error: console.error.bind(console)
-      }
-    })
-  } else {
-    Object.defineProperty(runtime, 'console', {
-      value: {
-        log: () => {},
-        info: () => {},
-        debug: () => {},
-        trace: () => {},
-        warning: () => {},
-        error: () => {}
-      }
-    })
-  }
+  // We don't want to log the scene logs
+  Object.defineProperty(runtime, 'console', {
+    value: {
+      log: () => {},
+      info: () => {},
+      debug: () => {},
+      trace: () => {},
+      warning: () => {},
+      error: () => {}
+    }
+  })
 
   const loadedModules: Record<string, GenericRpcModule> = {}
 
