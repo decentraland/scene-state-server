@@ -2,7 +2,7 @@ import { createSceneComponent } from '../adapters/scene'
 import { getGameDataFromLocalScene, getGameDataFromRemoteScene } from '../logic/sceneFetcher'
 import { BaseComponents } from '../types'
 
-export async function loadOrReload({ config, fetch }: Pick<BaseComponents, 'config' | 'fetch'>, name: string) {
+export async function loadOrReload({ config, fetch }: BaseComponents, name: string) {
   let hash: string
   let sourceCode: string
   if (name === 'localScene') {
