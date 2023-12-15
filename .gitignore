@@ -4,6 +4,5 @@ node_modules/
 coverage
 yarn-error.log
 remove
-.env
 rendereable-entities-manifest.json
 .idea/
