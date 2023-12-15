@@ -12,7 +12,6 @@
   "devDependencies": {
     "@dcl/eslint-config": "^1.1.12",
     "@types/node": "^20.5.7",
-    "@well-known-components/test-helpers": "^1.5.0",
     "typescript": "^5.1.6"
   },
   "prettier": {
@@ -24,14 +23,10 @@
   },
   "dependencies": {
     "@dcl/ecs": "^7.3.30",
-    "@dcl/platform-crypto-middleware": "^1.0.2",
     "@well-known-components/env-config-provider": "^1.2.0",
     "@well-known-components/fetch-component": "^2.0.2",
     "@well-known-components/http-server": "^2.0.0",
     "@well-known-components/interfaces": "^1.4.2",
-    "@well-known-components/logger": "^3.1.3",
-    "@well-known-components/metrics": "^2.0.1",
-    "protobufjs": "^7.2.5",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.10.0"
+    "protobufjs": "^7.2.5"
   }
 }
