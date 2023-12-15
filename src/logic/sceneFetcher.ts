@@ -43,8 +43,10 @@ export async function getGameDataFromLocalScene(scenePath: string): Promise<stri
 }
 
 export const contentFetchBaseUrl = 'https://peer.decentraland.org/content/contents/'
+const mainCRDTFileName = 'main.crdt'
 export let sdk6SceneContent: any
 export let sdk6FetchComponent: any
+export let mainCrdt: any
 export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCoords: string): Promise<string> {  
   // get scene id
   const mappingsUrl = `https://peer.decentraland.org/content/entities/active`
@@ -54,7 +56,7 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
     body: JSON.stringify({ pointers: [sceneCoords] })
   })
   const sceneData = (await fetchResponse.json())[0]  
-  console.log(`PRAVS - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.runtimeVersion === '7'}`)
+  console.log(`Fetched scene data - scene id:${sceneData.id} - sdk7? ${sceneData.metadata.runtimeVersion === '7'}`)
 
   // SDK6 scenes support
   if (sceneData.metadata.runtimeVersion !== '7') {
@@ -66,7 +68,15 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
     return await fetchResponse.text()
   }
   
-  // TODO: get main.crdt and use that instead of main file to support editor-made scenes
+  const sceneMainCRDTFileHash = sceneData.content.find(($: any) => $.file === mainCRDTFileName)?.hash
+  if (sceneMainCRDTFileHash) {
+    fetchResponse = await fetch.fetch(`${contentFetchBaseUrl}${sceneMainCRDTFileHash}`)
+    
+    // console.log(`found crdt.main file...`, await fetchResponse.text())
+    
+    // mainCRDTFile = await fetchResponse.arrayBuffer()
+    mainCrdt = new Uint8Array(await fetchResponse.arrayBuffer())
+  }
   
   // get scene main file hash (index.js/game.js)
   const sceneMainFileHash = sceneData.content.find(($: any) => $.file === sceneData.metadata.main)?.hash
