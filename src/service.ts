@@ -1,15 +1,10 @@
 import { Lifecycle } from '@well-known-components/interfaces'
-import { AppComponents, GlobalContext } from './types'
-import { loadOrReload } from './controllers/handlers/debugging-handler'
+import { BaseComponents } from './types'
+import { loadOrReload } from './controllers/sceneLoadController'
 
 // this function wires the business logic (adapters & controllers) with the components (ports)
-export async function main(program: Lifecycle.EntryPointParameters<AppComponents>) {
+export async function main(program: Lifecycle.EntryPointParameters<BaseComponents>) {
   const { components, startComponents } = program
-  const globalContext: GlobalContext = {
-    components
-  }
-
-  components.server.setContext(globalContext)
 
   // start ports: db, listeners, synchronizations, etc
   await startComponents()
