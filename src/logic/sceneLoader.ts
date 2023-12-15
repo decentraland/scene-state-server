@@ -1,5 +1,5 @@
 import { createSceneComponent } from '../adapters/scene'
-import { getGameDataFromLocalScene, getGameDataFromRemoteScene } from '../logic/sceneFetcher'
+import { getGameDataFromLocalScene, getGameDataFromRemoteScene } from './sceneFetcher'
 import { BaseComponents } from '../types'
 
 export async function loadOrReload({ config, fetch }: BaseComponents, name: string) {
