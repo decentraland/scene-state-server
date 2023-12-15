@@ -1,55 +1,14 @@
 import { IFetchComponent } from '@well-known-components/interfaces'
 import { readFileSync } from 'fs'
 
-async function getJson(fetch: IFetchComponent, url: string) {
-  const res = await fetch.fetch(url)
-  return res.json()
-}
-
-type Content = {
-  file: string
-  hash: string
-}
-
-export async function getGameDataFromWorld(
-  fetch: IFetchComponent,
-  worldServerUrl: string,
-  worldName: string
-): Promise<{ sceneHash: string; code: string }> {
-  const about = await getJson(fetch, `${worldServerUrl}/world/${worldName}/about`)
-  if (!about.healthy) {
-    throw new Error(`World content server ${worldServerUrl} is in unhealthy state, cannot download scene data`)
-  }
-
-  const sceneUrnAndServer = new URL(about.configurations.scenesUrn[0])
-  const sceneHash = sceneUrnAndServer.pathname.split(':')[2]
-  const baseUrl = sceneUrnAndServer.searchParams.get('baseUrl')
-
-  const scene = await getJson(fetch, `${baseUrl}${sceneHash}`)
-
-  const { metadata, content } = scene
-
-  const entryPoint = content.find(({ file }: Content) => file === metadata.main)
-  if (!entryPoint) {
-    throw new Error(`Cannot find entry point for scene`)
-  }
-
-  const res = await fetch.fetch(`${baseUrl}${entryPoint.hash}`)
-  return { sceneHash, code: await res.text() }
-}
-
-export async function getGameDataFromLocalScene(scenePath: string): Promise<string> {
-  return readFileSync(scenePath, 'utf-8')
-}
-
 export const contentFetchBaseUrl = 'https://peer.decentraland.org/content/contents/'
+const mappingsUrl = 'https://peer.decentraland.org/content/entities/active'
 const mainCRDTFileName = 'main.crdt'
 export let sdk6SceneContent: any
 export let sdk6FetchComponent: any
 export let mainCrdt: any
 export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCoords: string): Promise<string> {  
   // get scene id
-  const mappingsUrl = `https://peer.decentraland.org/content/entities/active`
   let fetchResponse = await fetch.fetch(mappingsUrl, {
     method: 'post',
     headers: { 'content-type': 'application/json' },
@@ -67,18 +26,15 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
     fetchResponse = await fetch.fetch(`https://renderer-artifacts.decentraland.org/sdk7-adaption-layer/main/index.js`)
     return await fetchResponse.text()
   }
-  
+
+  // SDK7 editor-made scenes support (main.crdt binary file)
   const sceneMainCRDTFileHash = sceneData.content.find(($: any) => $.file === mainCRDTFileName)?.hash
   if (sceneMainCRDTFileHash) {
     fetchResponse = await fetch.fetch(`${contentFetchBaseUrl}${sceneMainCRDTFileHash}`)
-    
-    // console.log(`found crdt.main file...`, await fetchResponse.text())
-    
-    // mainCRDTFile = await fetchResponse.arrayBuffer()
     mainCrdt = new Uint8Array(await fetchResponse.arrayBuffer())
   }
   
-  // get scene main file hash (index.js/game.js)
+  // Get SDK7 scene main file (index.js/game.js)
   const sceneMainFileHash = sceneData.content.find(($: any) => $.file === sceneData.metadata.main)?.hash
   if (!sceneMainFileHash) {
     throw new Error(`Cannot find scene's main asset file hash`)
@@ -86,4 +42,9 @@ export async function getGameDataFromRemoteScene(fetch: IFetchComponent, sceneCo
   fetchResponse = await fetch.fetch(`${contentFetchBaseUrl}${sceneMainFileHash}`)
   
   return await fetchResponse.text()
+}
+
+// Local scenes mode only supports SDK7 scenes for now
+export async function getGameDataFromLocalScene(scenePath: string): Promise<string> {
+  return readFileSync(scenePath, 'utf-8')
 }

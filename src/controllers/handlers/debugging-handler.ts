@@ -1,5 +1,5 @@
 import { createSceneComponent } from '../../adapters/scene'
-import {getGameDataFromLocalScene, getGameDataFromRemoteScene, getGameDataFromWorld} from '../../logic/sceneFetcher'
+import { getGameDataFromLocalScene, getGameDataFromRemoteScene } from '../../logic/sceneFetcher'
 import { AppComponents, BadRequestError, HandlerContextWithPath, NotAuthorizedError } from '../../types'
 
 export async function loadOrReload(
@@ -20,15 +20,10 @@ export async function loadOrReload(
     const path = await config.requireString('LOCAL_SCENE_PATH')
     sourceCode = await getGameDataFromLocalScene(path)
     hash = 'localScene'
-  } else if (name === 'remoteScene') {
+  } else {
     const sceneCoords = await config.requireString('REMOTE_SCENE_COORDS')
     sourceCode = await getGameDataFromRemoteScene(fetch, sceneCoords)
     hash = 'remoteScene'
-  } else {
-    const worldServerUrl = await config.requireString('WORLD_SERVER_URL')
-    const { sceneHash, code } = await getGameDataFromWorld(fetch, worldServerUrl, name)
-    sourceCode = code
-    hash = sceneHash
   }
 
   scene = await createSceneComponent({ logs, metrics })

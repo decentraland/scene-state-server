@@ -13,9 +13,13 @@ export const LoadableApis = {
     crdtGetState: async () => ({ hasEntities: mainCrdt !== undefined, data: [mainCrdt] }),
     
     crdtSendToRenderer: async ({ data }: { data: Uint8Array }) => {
-      data = joinBuffers(mainCrdt, data)
+      if (mainCrdt) {
+        data = joinBuffers(mainCrdt, data)
+      }
+      
       if (savedManifest || data.length == 0) return
       savedManifest = true
+      
       const outputJSONManifest = JSON.stringify([...serializeCrdtMessages('[msg]: ', data)], null, 2)
       writeFile('rendereable-entities-manifest.json', outputJSONManifest,
           err => {
