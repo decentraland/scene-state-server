@@ -1,5 +1,5 @@
 {
-  "name": "@dcl/scene-state-server",
+  "name": "@dcl/scene-lod-entities-manifest-builder",
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
