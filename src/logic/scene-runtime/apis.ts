@@ -1,5 +1,5 @@
 import { serializeCrdtMessages } from './logger'
-import {contentFetchBaseUrl, mainCrdt, sdk6FetchComponent, sdk6SceneContent} from "../sceneFetcher";
+import { contentFetchBaseUrl, mainCrdt, sdk6FetchComponent, sdk6SceneContent } from "../sceneFetcher";
 import { writeFile } from 'fs'
 
 let savedManifest = false
