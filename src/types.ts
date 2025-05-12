@@ -1,15 +1,12 @@
-import type { IFetchComponent } from '@well-known-components/http-server'
 import type {
   IConfigComponent,
   ILoggerComponent,
   IHttpServerComponent,
   IBaseComponent,
-  IMetricsComponent
+  IMetricsComponent,
+  IFetchComponent
 } from '@well-known-components/interfaces'
 import { metricDeclarations } from './metrics'
-import { ISceneComponent } from './adapters/scene'
-import { WsUserData } from '@well-known-components/http-server/dist/uws'
-import { IWSRegistryComponent } from './adapters/wsRegistry'
 
 export type GlobalContext = {
   components: BaseComponents
@@ -22,8 +19,6 @@ export type BaseComponents = {
   server: IHttpServerComponent<GlobalContext>
   fetch: IFetchComponent
   metrics: IMetricsComponent<keyof typeof metricDeclarations>
-  wsRegistry: IWSRegistryComponent
-  scenes: Map<string, ISceneComponent>
 }
 
 // components used in runtime
@@ -49,8 +44,6 @@ export type HandlerContextWithPath<
 >
 
 export type Context<Path extends string = any> = IHttpServerComponent.PathAwareContext<GlobalContext, Path>
-
-export type WebSocket = WsUserData
 
 export class BadRequestError extends Error {
   constructor(message: string) {

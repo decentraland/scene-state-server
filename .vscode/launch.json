@@ -27,6 +27,37 @@
       "preLaunchTask": "npm: build"
     },
     {
+      "name": "Debug SDK7 Scene",
+      "type": "node",
+      "request": "launch",
+      "restart": true,
+      "skipFiles": [
+        "<node_internals>/**/*.js",
+        "node_modules/**/*.js"
+      ],
+      "runtimeExecutable": "node",
+      "sourceMaps": true,
+      "showAsyncStacks": true,
+      "autoAttachChildProcesses": true,
+      "runtimeArgs": [
+        "--inspect-brk",
+        "--preserve-symlinks"
+      ],
+      "env": {
+        "NODE_OPTIONS": "--enable-source-maps"
+      },
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js",
+        "${env:PREVIEW_PATH}"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "${env:PREVIEW_PATH}"
+      ],
+      "program": "${workspaceFolder}/dist/index.js",
+      "preLaunchTask": "npm: build"
+    },
+    {
       "name": "Debug Jest Tests",
       "type": "node",
       "request": "launch",

@@ -60,7 +60,14 @@ const allowListES2020: Array<keyof typeof globalThis> = [
 const defer: (fn: Function) => void = (Promise.resolve().then as any).bind(Promise.resolve() as any)
 
 export async function customEvalSdk7(code: string, context: Record<string | symbol, unknown>) {
-  const func = new Function('globalThis', `with (globalThis) {${code}}`)
+  // Add debugger support with sourcemaps
+  const debuggableCode = `
+    //# sourceURL=scene-code.js
+    debugger;
+    ${code}
+  `
+
+  const func = new Function('globalThis', `with (globalThis) {${debuggableCode}}`)
   const proxy: any = new Proxy(context, {
     has() {
       return true
