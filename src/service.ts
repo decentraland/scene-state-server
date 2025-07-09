@@ -24,5 +24,5 @@ export async function main(program: Lifecycle.EntryPointParameters<AppComponents
   await startComponents()
   await devIdentityExample()
   const scene = await createSceneComponent(components)
-  await scene.start('')
+  await scene.start([23, -24])
 }
