@@ -36,7 +36,7 @@ export function createWsFetchRuntime(runtime: Record<string, any>) {
   })
 }
 
-export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
+export function createModuleRuntime(runtime: Record<string, any>, apis: ReturnType<typeof LoadableApis>): SDK7Module {
   const exports: Partial<SceneInterface> = {}
 
   const module = { exports }
@@ -85,7 +85,7 @@ export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
     configurable: false,
     value: (moduleName: string) => {
       if (moduleName in loadedModules) return loadedModules[moduleName]
-      const module = loadSceneModule(moduleName)
+      const module = loadSceneModule(moduleName, apis)
       loadedModules[moduleName] = module
       return module
     }
@@ -132,10 +132,10 @@ export function createModuleRuntime(runtime: Record<string, any>): SDK7Module {
   }
 }
 
-function loadSceneModule(moduleName: string): GenericRpcModule {
+function loadSceneModule(moduleName: string, apis: ReturnType<typeof LoadableApis>): GenericRpcModule {
   const moduleToLoad = moduleName.replace(/^~system\//, '')
-  if (moduleToLoad in LoadableApis) {
-    return (LoadableApis as any)[moduleToLoad]
+  if (moduleToLoad in apis) {
+    return (apis as any)[moduleToLoad]
   } else {
     throw new Error(`Unknown module ${moduleName}`)
   }

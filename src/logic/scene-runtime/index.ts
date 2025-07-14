@@ -2,6 +2,8 @@ import { ILoggerComponent } from '@well-known-components/interfaces'
 import { setTimeout } from 'timers/promises'
 import { customEvalSdk7 } from './sandbox'
 import { createModuleRuntime } from './sdk7-runtime'
+import { LoadableApis } from './apis'
+import { createInternalEngine } from './engine'
 
 export interface SceneExecutorOptions {
   logger: ILoggerComponent.ILogger
@@ -16,18 +18,20 @@ export interface SceneExecutionController {
  * Runs a scene with the given hash and source code
  */
 export async function runScene(
-  hash: string,
   sourceCode: string,
   options: SceneExecutorOptions
 ): Promise<SceneExecutionController> {
   const { logger } = options
   let loaded = true
   const abortController = new AbortController()
-
   // Create a clean execution context
   const runtimeExecutionContext = Object.create(null)
-  const sceneModule = createModuleRuntime(runtimeExecutionContext)
-
+  const Apis = LoadableApis()
+  const sceneModule = createModuleRuntime(runtimeExecutionContext, Apis)
+  
+  logger.log('Running new scene context')
+  const engine = createInternalEngine()
+  
   try {
     await customEvalSdk7(sourceCode, runtimeExecutionContext)
     const updateIntervalMs: number = 1000 / 30
@@ -55,7 +59,6 @@ export async function runScene(
             start = currentTime
 
             const dtSecs = dtMillis / 1000
-
             await sceneModule.runUpdate(dtSecs)
             // wait for next frame
             const elapsed = Date.now() - start

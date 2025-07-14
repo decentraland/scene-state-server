@@ -1,12 +1,11 @@
 import { AppComponents } from '../types'
-import { createPreviewComponent, IPreviewComponent } from './preview'
+import { localPreviewHandler, IPreviewComponent } from './local-preview'
 import { runScene, SceneExecutionController } from '../logic/scene-runtime'
 import { fetchScene } from '../logic/scene-fetcher'
 
 export type ISceneComponent = {
   stop(): Promise<void>
   start(pointers: [number, number]): Promise<void>
-  reload(): Promise<void>
 }
 
 export async function createSceneComponent({
@@ -17,14 +16,9 @@ export async function createSceneComponent({
 }: Pick<AppComponents, 'logs' | 'metrics' | 'fetch' | 'config'>): Promise<ISceneComponent> {
   const logger = logs.getLogger('scene')
   const baseUrl = await config.getString('BASE_URL') || 'http://localhost:8000'
-
   let pointers: [number, number]
   let sceneExecutionController: SceneExecutionController | undefined
-  let preview: IPreviewComponent
-
-  async function isPreviewEnabled(): Promise<boolean> {
-    return !!(await config.getString('PREVIEW_PATH'))
-  }
+  let localPreviewServer: IPreviewComponent
 
   async function withRetry<T>(
     operation: () => Promise<T>,
@@ -56,23 +50,26 @@ export async function createSceneComponent({
     return `${errorMessage} (URL: ${sceneUrl})`
   }
 
-  async function loadScene(): Promise<void> {
+  async function loadAndRunScene(): Promise<void> {
     const MAX_RETRIES = 3
     
     try {
       logger.log(`Loading scene from URL: ${baseUrl}`)
       
-      await withRetry(async () => {
-        await fetchScene({ fetch, logs }, baseUrl, pointers.join(','))
-      }, MAX_RETRIES)
-
       // Stop any existing scene execution
-      if (sceneExecutionController) {
+      if (sceneExecutionController?.isRunning) {
         sceneExecutionController.abort()
       }
 
-      // Run the scene using the scene executor
-      // sceneExecutionController = await runScene(hash, sourceCode, { logger })
+      await withRetry(async () => {
+        const sourceCode = await fetchScene({ fetch, logs }, baseUrl, pointers.join(','))
+        if (sourceCode) {
+          // Run the scene using the scene executor
+          sceneExecutionController = await runScene(sourceCode, { logger })
+        }
+      }, MAX_RETRIES)
+
+
       
       logger.log(`Scene loaded successfully from URL: ${baseUrl} / ${[pointers.join(', ')]}`)
     } catch (e: any) {
@@ -82,11 +79,10 @@ export async function createSceneComponent({
 
   async function start(_pointers: [number, number]) {
     pointers = _pointers
-    await loadScene()
+    await loadAndRunScene()
     // Set up preview if enabled
-    if (await isPreviewEnabled()) {
-      preview = await createPreviewComponent({ logs, config, fetch, metrics })
-      await preview.start({ reload })
+    if (baseUrl.includes('localhost')) {
+      localPreviewServer = await localPreviewHandler({ logs, config, fetch, metrics }, loadAndRunScene)
     }
   }
 
@@ -95,17 +91,11 @@ export async function createSceneComponent({
       sceneExecutionController.abort()
       sceneExecutionController = undefined
     }
-    await preview?.stop()
-  }
-
-  async function reload() {
-    logger.log(`Reloading scene with hash: `)
-    await loadScene()
+    await localPreviewServer?.stop()
   }
 
   return {
     start,
-    reload,
     stop
   }
 }

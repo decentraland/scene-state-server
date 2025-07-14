@@ -27,7 +27,10 @@
   },
   "dependencies": {
     "@dcl/crypto": "^3.4.5",
+    "@dcl/ecs": "^7.8.21",
+    "@dcl/js-runtime": "^7.8.21",
     "@dcl/platform-crypto-middleware": "^1.0.2",
+    "@dcl/protocol": "^1.0.0-16079089845.commit-0e8c31f",
     "@types/ws": "^8.18.1",
     "@well-known-components/env-config-provider": "^1.2.0",
     "@well-known-components/fetch-component": "^2.0.2",

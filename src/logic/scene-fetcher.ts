@@ -46,11 +46,15 @@ export async function fetchScene({ fetch, logs }: Pick<AppComponents, 'fetch' | 
       method: 'POST',
       body: JSON.stringify({ pointers: [pointers] })
     })
+    console.log('[BOEDO!]')
+    console.log(getURLs(baseUrl).sceneContent)
     const scene: SceneData = (await sceneContent.json())[0]
+    console.log(JSON.stringify(scene))
 
     const mainFileContent = await getFileFromContent(fetch, getURLs(baseUrl).getFile, scene.content, scene.metadata.main)
-    
+    return mainFileContent
   } catch(e: any) {
     log.error("Failed to fetch index.js file", e.message as any)
   }
+  return
 }

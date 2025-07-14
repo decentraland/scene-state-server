@@ -1,4 +1,9 @@
 import { WebSocket } from 'ws'
+import {
+  WsSceneMessage,
+  UpdateModelType
+} from '@dcl/protocol/out-js/decentraland/sdk/development/local_development.gen'
+
 import { AppComponents } from '../types'
 import { ISceneComponent } from './scene'
 
@@ -7,15 +12,7 @@ interface WebSocketMessage {
   [key: string]: any
 }
 
-type Scene = Pick<ISceneComponent, 'reload'>
-
 export type IPreviewComponent = {
-  /**
-   * Initialize preview features if configured
-   * If not in preview mode (PREVIEW_PATH not set), this does nothing
-   */
-  start(scene: Scene): Promise<WebSocket | null>
-
   /**
    * Clean up resources used by preview features
    * If not in preview mode, this does nothing
@@ -23,18 +20,21 @@ export type IPreviewComponent = {
   stop(): Promise<void>
 }
 
-export async function createPreviewComponent(
-  components: Pick<AppComponents, 'logs' | 'config' | 'fetch' | 'metrics'>
+export async function localPreviewHandler(
+  components: Pick<AppComponents, 'logs' | 'config' | 'fetch' | 'metrics'>,
+  reloadScene: () => Promise<void>
 ): Promise<IPreviewComponent> {
   const { logs, config } = components
   const logger = logs.getLogger('preview')
+  const baseUrl = await config.getString('BASE_URL') || 'http://localhost:8000'
+  const { port } = new URL(baseUrl)
 
   let wsConnection: WebSocket | null = null
   const sceneName = 'preview' // Default scene name
+  
+  await start()
 
-  async function startWatcher(scene: Scene): Promise<void> {
-    const port = await config.getNumber('PREVIEW_PORT')
-
+  async function start(): Promise<void> {
     logger.log(`Starting to watch scene: ${sceneName} on port ${port}`)
 
     try {
@@ -43,16 +43,18 @@ export async function createPreviewComponent(
         logger.log(`Connected to development server for scene: ${sceneName}`)
       })
 
+
       wsConnection.on('message', async (data: Buffer) => {
         try {
-          const message = JSON.parse(data.toString()) as WebSocketMessage
-          if (message.type === 'reload' || message.type === 'change') {
+          const { message } = WsSceneMessage.decode(data)
+          
+          // TODO what happens if we change a model ?
+          if (message?.$case === 'updateScene') {
             logger.log(`Change detected for scene: ${sceneName}, reloading...`)
-            await scene.reload()
+            await reloadScene()
           }
-        } catch (error) {
-          logger.error(`Error handling message for scene ${sceneName}:`)
-          logger.error(String(error))
+        } catch (error: any) {
+          // logger.error(`Error handling message for scene ${sceneName}: ${error.message}`)
         }
       })
 
@@ -70,7 +72,13 @@ export async function createPreviewComponent(
     }
   }
 
-  async function stopWatcher(): Promise<void> {
+  async function shutdown(): Promise<void> {
+    if (!wsConnection) {
+      return
+    }
+
+    logger.log('Shutting down preview features')
+    
     if (wsConnection && wsConnection.OPEN) {
       logger.log(`Stopping watcher for scene: ${sceneName}`)
       wsConnection.close()
@@ -78,36 +86,7 @@ export async function createPreviewComponent(
     }
   }
 
-  async function isPreviewEnabled(): Promise<boolean> {
-    return !!(await config.getString('PREVIEW_PATH'))
-  }
-
-  async function initialize(scene: Scene): Promise<WebSocket | null> {
-    // Check if preview is enabled
-    const isEnabled = await isPreviewEnabled()
-    if (!isEnabled) {
-      return null
-    }
-
-    const localPath = await config.getString('PREVIEW_PATH')
-    logger.log(`Preview mode active with scene path: ${localPath}`)
-
-    // Start WebSocket watcher if port is configured
-    await startWatcher(scene)
-    return wsConnection!
-  }
-
-  async function shutdown(): Promise<void> {
-    if (!wsConnection) {
-      return
-    }
-
-    logger.log('Shutting down preview features')
-    await stopWatcher()
-  }
-
   return {
-    start: initialize,
     stop: shutdown
   }
 }

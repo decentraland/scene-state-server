@@ -13,9 +13,13 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": [
+      "@dcl/js-runtime",
+    ]
   },
   "include": [
     "src"
-  ]
+  ],
+
 }
