@@ -1,7 +1,8 @@
 import { upgradeWebSocketResponse } from '@well-known-components/http-server/dist/ws'
 import { HandlerContextWithPath, NotFoundError, WebSocket } from '../../types'
 import { IHttpServerComponent } from '@well-known-components/interfaces'
-import { verify } from '@dcl/platform-crypto-middleware'
+import type { IFetchComponent } from '@dcl/core-commons'
+import { verify } from '@dcl/crypto-middleware'
 import { MessageType, decodeJSON, decodeMessage } from '../../logic/protocol'
 
 const authTimeout = 1000 * 5 // 5 secs
@@ -51,7 +52,14 @@ export async function wsHandler(
         try {
           const headers = decodeJSON(msgData)
           await verify(context.request.method, path.pathname, headers, {
-            fetcher: fetch
+            // The well-known-components fetch component is typed against node-fetch while
+            // @dcl/crypto-middleware is typed against Node's global (undici) fetch, so the
+            // two `IFetchComponent`s are not assignable even though the component accepts
+            // every argument the middleware passes (it calls `url.toString()` internally).
+            // Kept rather than dropped so the catalyst round-trip retains the component's
+            // retry and timeout behaviour; it is only reached for EIP-1654 contract-wallet
+            // signatures, since personal signatures are verified locally.
+            fetcher: fetch as unknown as IFetchComponent
           })
           authenticated = true
           scene!.addSceneClient(ws)
